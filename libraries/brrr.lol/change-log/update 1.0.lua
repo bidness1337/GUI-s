@@ -2710,7 +2710,7 @@ local Library = (function()
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Objects.Line,
-                    Padding = UDim.new(0, 6),
+                    Padding = UDim.new(0, 4),
                 })
 
                 -- LEFT: checkbox
@@ -5654,6 +5654,164 @@ local Library = (function()
             }
         end
         
+        function Library.KeybindList(self, cfg)
+            cfg = cfg or {}
+            cfg = Library.Config(cfg, {
+                name = 'Keybinds',
+                visible = true,
+                position = UDim2.new(0, 10, 0, 300),
+                size = UDim2.new(0, 180, 0, 30),
+            })
+
+            local KeybindList = {
+                Objects = {},
+                Visible = cfg.visible,
+                ZIndex = 100,
+                Items = {},
+                Minimized = false,
+            }
+            local ZIndex = KeybindList.ZIndex
+            local Objects = KeybindList.Objects
+
+            do
+                Objects.Outline = Utility.New('Frame', {
+                    Name = 'KeybindList',
+                    BorderSizePixel = 0,
+                    Size = cfg.size,
+                    Position = cfg.position,
+                    Parent = Library.ScreenGui,
+                    ZIndex = ZIndex,
+                    ClipsDescendants = true,
+                }, { BackgroundColor3 = 'Inline' })
+                Utility.New('UICorner', {
+                    Name = 'UICorner',
+                    Parent = Objects.Outline,
+                    CornerRadius = UDim.new(0, 5),
+                })
+                ZIndex = ZIndex + 1
+                Objects.Background = Utility.New('Frame', {
+                    Name = 'Background',
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, -2, 1, -2),
+                    Position = UDim2.new(0, 1, 0, 1),
+                    Parent = Objects.Outline,
+                    ZIndex = ZIndex,
+                }, { BackgroundColor3 = 'Background' })
+                Utility.New('UICorner', {
+                    Name = 'UICorner',
+                    Parent = Objects.Background,
+                    CornerRadius = UDim.new(0, 5),
+                })
+                Utility.New('UIPadding', {
+                    Name = 'UIPadding',
+                    PaddingLeft = UDim.new(0, 5),
+                    PaddingRight = UDim.new(0, 5),
+                    PaddingTop = UDim.new(0, 5),
+                    PaddingBottom = UDim.new(0, 5),
+                    Parent = Objects.Background,
+                })
+                ZIndex = ZIndex + 1
+                Objects.Header = Utility.New('TextButton', {
+                    Name = 'Header',
+                    Size = UDim2.new(1, 0, 0, 20),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = cfg.name,
+                    TextSize = Library.FontSize,
+                    FontFace = Library.Font,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    Parent = Objects.Background,
+                    ZIndex = ZIndex,
+                }, { TextColor3 = 'Text' })
+                ZIndex = ZIndex + 1
+                Objects.Content = Utility.New('Frame', {
+                    Name = 'Content',
+                    Size = UDim2.new(1, 0, 0, 0),
+                    Position = UDim2.new(0, 0, 0, 25),
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Parent = Objects.Background,
+                    ZIndex = ZIndex,
+                })
+                Utility.New('UIListLayout', {
+                    Name = 'UIListLayout',
+                    FillDirection = Enum.FillDirection.Vertical,
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Parent = Objects.Content,
+                    Padding = UDim.new(0, 2),
+                })
+            end
+
+            KeybindList.ZIndex = ZIndex
+
+            function KeybindList.Add(item)
+                local Item = {
+                    Objects = {},
+                    Name = item.Name or 'Unknown',
+                    Key = item.Key or 'None',
+                    Mode = item.Mode or 'Toggle',
+                }
+                local Objs = Item.Objects
+                Objs.Holder = Utility.New('Frame', {
+                    Name = 'Item',
+                    Size = UDim2.new(1, 0, 0, 16),
+                    BackgroundTransparency = 1,
+                    Parent = Objects.Content,
+                    ZIndex = ZIndex,
+                })
+                Objs.Name = Utility.New('TextLabel', {
+                    Name = 'Name',
+                    Size = UDim2.new(0.6, 0, 1, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = Item.Name,
+                    TextSize = Library.FontSize - 2,
+                    FontFace = Library.Font,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = Objs.Holder,
+                    ZIndex = ZIndex,
+                }, { TextColor3 = 'Text' })
+                Objs.Key = Utility.New('TextLabel', {
+                    Name = 'Key',
+                    Size = UDim2.new(0.4, 0, 1, 0),
+                    Position = UDim2.new(0.6, 0, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = Item.Key,
+                    TextSize = Library.FontSize - 2,
+                    FontFace = Library.Font,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    Parent = Objs.Holder,
+                    ZIndex = ZIndex,
+                }, { TextColor3 = 'Accent' })
+                table.insert(KeybindList.Items, Item)
+                return Item
+            end
+
+            function KeybindList.SetVisible(visibility)
+                KeybindList.Visible = visibility
+                Objects.Outline.Visible = visibility
+            end
+
+            function KeybindList.ToggleMinimize()
+                KeybindList.Minimized = not KeybindList.Minimized
+                if KeybindList.Minimized then
+                    Objects.Outline.Size = UDim2.new(cfg.size.X.Scale, cfg.size.X.Offset, 0, 30)
+                else
+                    Objects.Outline.Size = cfg.size
+                end
+            end
+
+            Utility.Signal(Objects.Header.MouseButton1Click:Connect(KeybindList.ToggleMinimize))
+            
+            if not KeybindList.Visible then
+                Objects.Outline.Visible = false
+            end
+
+            Library.KeybindList = KeybindList
+            return setmetatable(KeybindList, Library)
+        end
+
         function Library.Unload()
             for _, obj in Utility.Connections do
                 obj:Disconnect()
