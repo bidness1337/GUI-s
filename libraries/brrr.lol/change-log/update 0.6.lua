@@ -778,6 +778,28 @@ local Library = (function()
                 end
                 return text
             end
+
+            -- New Highlight Utility
+            function Utility.HighlightText(text, highlightColor)
+                -- Basic parser for [text] or specific keywords
+                -- Format: [color]text[/color]
+                local highlights = {
+                    ["32vision"] = "#00ff00",
+                    ["enemy"] = "#ff0000",
+                    ["hit"] = "#ffffff",
+                    ["missed"] = "#ffff00",
+                }
+                
+                -- First pass: specific keywords
+                for word, color in pairs(highlights) do
+                    text = text:gsub("(" .. word .. ")", '<font color="' .. color .. '">%1</font>')
+                end
+
+                -- Second pass: Generic tags if needed
+                -- text = text:gsub("%[(.-)%]", '<font color="' .. (highlightColor or "#ffffff") .. '">%1</font>')
+                
+                return text
+            end
         end
 
         Library.ScreenGui = Utility.New('ScreenGui', {
