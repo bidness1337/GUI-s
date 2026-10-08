@@ -3,7 +3,7 @@ if getgenv().Library then
     getgenv().Library:Unload()
 end
 
--- Service references - simplified version
+-- Service references
 local serviceCache = {}
 do
     local function initServices()
@@ -15,7 +15,7 @@ do
         cache.HttpService = cloneref(game:GetService('HttpService'))
         cache.Stats = cloneref(game:GetService('Stats'))
         cache.Lighting = cloneref(game:GetService('Lighting'))
-        cache.TeleportService = cloneref(game:GetService('TeleportService'))    
+        cache.TeleportService = cloneref(game:GetService('TeleportService'))
         cache.MarketplaceService = cloneref(game:GetService('MarketplaceService'))
         cache.TweenService = cloneref(game:GetService('TweenService'))
         cache.ReplicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
@@ -71,7 +71,7 @@ do
             end
             return 0
         end
-        
+
         function cache.getPingMs()
             local item = cache.Stats.Network.ServerStatsItem:FindFirstChild('Data Ping')
             if item then
@@ -84,7 +84,7 @@ do
             end
             return 0
         end
-        
+
         function cache.getMainEvent()
             return cache.ReplicatedStorage:WaitForChild('MainEvent')
         end
@@ -98,11 +98,10 @@ do
 
         return cache
     end
-    
+
     serviceCache = initServices()
 end
 
--- Create the library directly
 local Library = (function()
     local Env = getgenv()
 
@@ -172,7 +171,7 @@ local Library = (function()
                 })
                 return item
             end
-            
+
             function bin:destroy()
                 if not (self and self.storage) then return end
                 for _, entry in ipairs(self.storage) do
@@ -197,12 +196,12 @@ local Library = (function()
             Bin:destroy()
             getgenv().Library = nil
         end
-        
+
         function Utility.Connect(connection)
             Bin:add(connection)
             return connection
         end
-        
+
         function Utility.New(sqr, props)
             local Obj = Instance.new(sqr)
             if props then
@@ -213,12 +212,12 @@ local Library = (function()
             Bin:add(Obj)
             return Obj
         end
-        
+
         function Utility.Round(number, float)
             local Mult = 1 / (float or 1)
             return math.floor(number * Mult + 0.5) / Mult
         end
-        
+
         function Utility.GetTrans(obj)
             local Index
             if obj:IsA('Frame') then
@@ -234,7 +233,7 @@ local Library = (function()
             end
             return Index
         end
-        
+
         function Utility.GetFiles(folder, extensions)
             if not isfolder(folder) then
                 makefolder(folder)
@@ -252,7 +251,7 @@ local Library = (function()
             end
             return StoredFiles, FileNames
         end
-        
+
         function Utility.Lerp(a, b, c)
             c = c or 0.125
             local offset = math.abs(b - a)
@@ -261,7 +260,7 @@ local Library = (function()
             end
             return a + (b - a) * c
         end
-        
+
         function Utility.LineMath(obj, from, to, thickness)
             local Direction = (to - from)
             local Center = (to + from) / 2
@@ -404,22 +403,6 @@ local Library = (function()
                 end
             end
         end
-
-        local success2, response2 = pcall(function()
-            return game:HttpGet('https://api.github.com/repos/f1nobe7650/Nebula/contents/Sounds')
-        end)
-        if success2 then
-            local jsonSuccess, data = pcall(function()
-                return HttpService:JSONDecode(response2)
-            end)
-            if jsonSuccess and type(data) == 'table' then
-                for _, file in ipairs(data) do
-                    if file.name and (file.name:match('%.wav$') or file.name:match('%.mp3$') or file.name:match('%.ogg$')) then
-                        downloadSound('Nebula_' .. file.name, 'https://github.com/f1nobe7650/Nebula/raw/refs/heads/main/Sounds/' .. file.name)
-                    end
-                end
-            end
-        end
     end)
 
     local Fonts = {
@@ -455,7 +438,7 @@ local Library = (function()
             end
             Fonts.Data[font] = Font.new(getcustomasset(JSON), Enum.FontWeight.Regular)
         end
-        
+
         function Fonts.Get(font)
             return Fonts.Data[font]
         end
@@ -488,7 +471,7 @@ local Library = (function()
             end
             Images.Data[image] = getcustomasset(PNG)
         end
-        
+
         function Images.Get(image)
             return Images.Data[image]
         end
@@ -517,60 +500,47 @@ local Library = (function()
                 makefolder(self.AssetsFolder)
             end
         end
-        
+
         function AssetLoader:LoadAsset(assetName)
-            local ext = assetName:match('%.([^%.]+)$') or 'png'
             local fileName = assetName:match('%.([^%.]+)$') and assetName or (assetName .. '.png')
             local filePath = string.format('%s%s', self.AssetsFolder, fileName)
             if isfile(filePath) then
-                local success, asset = pcall(function()
-                    return getcustomasset(filePath)
-                end)
+                local success, asset = pcall(function() return getcustomasset(filePath) end)
                 if success and asset then
                     self.Data[assetName] = asset
                     if not table.find(self.AssetNames, assetName) then
                         table.insert(self.AssetNames, assetName)
                     end
                     return asset
-                else
-                    warn('[AssetLoader] Failed to load asset from file: ' .. filePath)
-                    return nil
                 end
-            else
-                local success, data = pcall(function()
-                    return game:HttpGet(string.format('%s%s', self.URL, fileName))
-                end)
-                if success and data then
-                    writefile(filePath, data)
-                    local success, asset = pcall(function()
-                        return getcustomasset(filePath)
-                    end)
-                    if success and asset then
-                        self.Data[assetName] = asset
-                        if not table.find(self.AssetNames, assetName) then
-                            table.insert(self.AssetNames, assetName)
-                        end
-                        return asset
-                    else
-                        warn('[AssetLoader] Failed to load asset from file: ' .. filePath)
-                        return nil
+                return nil
+            end
+            local success, data = pcall(function()
+                return game:HttpGet(string.format('%s%s', self.URL, fileName))
+            end)
+            if success and data then
+                writefile(filePath, data)
+                local success2, asset = pcall(function() return getcustomasset(filePath) end)
+                if success2 and asset then
+                    self.Data[assetName] = asset
+                    if not table.find(self.AssetNames, assetName) then
+                        table.insert(self.AssetNames, assetName)
                     end
-                else
-                    warn('[AssetLoader] Failed to load ' .. fileName .. ' from GitHub.')
-                    return nil
+                    return asset
                 end
             end
+            return nil
         end
-        
+
         function AssetLoader:GetCustomAsset(assetName)
             if self.Data[assetName] then return self.Data[assetName] end
             return self:LoadAsset(assetName)
         end
-        
+
         function AssetLoader:GetAssetNames()
             return self.AssetNames
         end
-        
+
         function AssetLoader:LoadAll(assetNames)
             if assetNames then
                 for _, name in ipairs(assetNames) do
@@ -586,14 +556,14 @@ local Library = (function()
                 end
             end
         end
-        
+
         function AssetLoader:PreloadDefaults()
             for _, name in ipairs(self.Names) do
                 self:LoadAsset(name)
             end
         end
     end
-    
+
     do
         AssetLoader:PreloadDefaults()
         AssetLoader:LoadAll()
@@ -620,7 +590,8 @@ local Library = (function()
         Checkmark = 'rbxassetid://10709790644',
         GlowIntensity = 0.8,
         GlowSize = 12,
-        DragTransparency = 0.4,
+        DragTransparency = 0.75,
+        DragOutlineEnabled = true,
         Converts = { [0]='0','1','2','3','4','5','6','7','8','9' },
         KeyConverters = {
             escape = 'ESC', backquote = '`', backspace = 'BSP', slash = '/', leftquote = "'",
@@ -658,8 +629,6 @@ local Library = (function()
         },
         Notifications = {},
         Window = nil,
-        KeybindList = nil,
-        Keybinds = {},
     }
 
     Library.__index = Library
@@ -687,12 +656,12 @@ local Library = (function()
                 table.insert(Utility.Objects, Obj)
                 return Obj
             end
-            
+
             function Utility.Signal(connection)
                 table.insert(Utility.Connections, connection)
                 return connection
             end
-            
+
             function Utility.GetTransparency(obj)
                 if obj:IsA('Frame') then
                     return 'BackgroundTransparency'
@@ -707,23 +676,12 @@ local Library = (function()
                 end
                 return nil
             end
-            
+
             function Utility.Round(number, float)
                 local Mult = 1 / (float or 1)
                 return math.floor(number * Mult + 0.5) / Mult
             end
-            
-            function Utility.PositionOver(position, object, addedy)
-                addedy = addedy or 0
-                local posX, posY = object.AbsolutePosition.X, (object.AbsolutePosition.Y - addedy)
-                local size = object.AbsoluteSize
-                local sizeX, sizeY = posX + size.X, posY + size.Y + addedy
-                if position.X >= posX and position.Y >= posY and position.X <= sizeX and position.Y <= sizeY then
-                    return true
-                end
-                return false
-            end
-            
+
             function Utility.MouseOver(object, input)
                 local posX, posY = object.AbsolutePosition.X, object.AbsolutePosition.Y
                 local size = object.AbsoluteSize
@@ -734,14 +692,14 @@ local Library = (function()
                 end
                 return false
             end
-            
+
             function Utility.Lerp(a, b, c)
                 c = c or 0.125
                 local offset = math.abs(b - a)
                 if (offset < c) then return b end
                 return a + (b - a) * c
             end
-            
+
             function Utility.StringToEnum(enumstring)
                 local EnumType, EnumValue = enumstring:match('Enum%.([^%.]+)%.(.+)')
                 if EnumType and EnumValue then
@@ -749,7 +707,7 @@ local Library = (function()
                 end
                 return nil
             end
-            
+
             function Utility.TextTriggers(text)
                 local gameName = 'Universal'
                 local success, result = pcall(function()
@@ -792,7 +750,7 @@ local Library = (function()
             Tween:Play()
             return Tween
         end
-        
+
         function Library.Fade(obj, prop, vis)
             if not obj or not prop or not pcall(function() return obj.Visible end) then return end
             local OldTransparency = obj[prop]
@@ -806,7 +764,7 @@ local Library = (function()
             end))
             return Tween
         end
-        
+
         function Library.AddObjectTheme(object, props)
             local Theme = { Props = props, Object = object }
             for prop, v in props do
@@ -818,7 +776,7 @@ local Library = (function()
             end
             Library.ThemeObjects[object] = Theme
         end
-        
+
         function Library.ChangeObjectTheme(object, props, tweened)
             local Theme = Library.ThemeObjects[object]
             if Theme then
@@ -836,7 +794,7 @@ local Library = (function()
                 end
             end
         end
-        
+
         function Library.UpdateTheme(theme, color)
             if not Library.Theme[theme] then return end
             Library.Theme[theme] = color
@@ -883,7 +841,7 @@ local Library = (function()
                 end
             end
         end
-        
+
         function Library.Config(cfg, default)
             local Table = {}
             for name, val in cfg do
@@ -896,7 +854,7 @@ local Library = (function()
             end
             return Table
         end
-        
+
         function Library.Resize(holder, box)
             local Start, StartSize, Resizing
             local CurrentSize = holder.Size
@@ -921,12 +879,35 @@ local Library = (function()
                 end
             end))
         end
-        
+
+        -- ============================================================
+        -- DRAGGING (with transparency + accent outline)
+        -- ============================================================
         function Library.Dragging(holder, box)
             local Start, StartPos, Dragging
             local CurrentPos
             local Inset = GuiService:GetGuiInset()
             local OriginalTransparencies = {}
+            local DragOutline
+
+            if Library.DragOutlineEnabled then
+                DragOutline = Utility.New('Frame', {
+                    Name = 'DragOutline',
+                    Size = UDim2.new(1, 6, 1, 6),
+                    Position = UDim2.new(0, -3, 0, -3),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 2,
+                    BorderColor3 = Library.Theme.Accent,
+                    Parent = nil,
+                    ZIndex = 0,
+                    Visible = false,
+                })
+                Utility.New('UICorner', {
+                    Name = 'UICorner',
+                    Parent = DragOutline,
+                    CornerRadius = UDim.new(0, 6),
+                })
+            end
 
             Utility.Signal(box.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -942,13 +923,19 @@ local Library = (function()
                                     OriginalTransparencies[obj] = OriginalTransparencies[obj] or {}
                                     OriginalTransparencies[obj][prop] = obj[prop]
                                     Library.Tween(obj, { [prop] = math.min(obj[prop] + Library.DragTransparency, 1) })
-                                end
-                            else
+                                end                            else
                                 OriginalTransparencies[obj] = OriginalTransparencies[obj] or {}
                                 OriginalTransparencies[obj][idx] = obj[idx]
                                 Library.Tween(obj, { [idx] = math.min(obj[idx] + Library.DragTransparency, 1) })
                             end
                         end
+                    end
+                    if DragOutline then
+                        DragOutline.Parent = Library.ScreenGui
+                        DragOutline.Size = UDim2.new(0, holder.AbsoluteSize.X + 6, 0, holder.AbsoluteSize.Y + 6)
+                        DragOutline.Position = UDim2.new(0, holder.AbsolutePosition.X - 3, 0, holder.AbsolutePosition.Y - 3)
+                        DragOutline.BorderColor3 = Library.Theme.Accent
+                        DragOutline.Visible = true
                     end
                 end
             end))
@@ -958,6 +945,9 @@ local Library = (function()
                     local ViewportSize = Camera.ViewportSize
                     CurrentPos = UDim2.new(0, math.clamp(StartPos.X + (input.Position.X - Start.X), 0, ViewportSize.x - MaxSize.x), 0, math.clamp(StartPos.Y + (input.Position.Y - Start.Y + 36), 0, ViewportSize.y - MaxSize.y) + (Inset.Y / 2))
                     holder.Position = CurrentPos
+                    if DragOutline and DragOutline.Parent then
+                        DragOutline.Position = UDim2.new(0, holder.AbsolutePosition.X - 3, 0, holder.AbsolutePosition.Y - 3)
+                    end
                 end
             end))
             Utility.Signal(UserInputService.InputEnded:Connect(function(input)
@@ -971,10 +961,17 @@ local Library = (function()
                         end
                     end
                     OriginalTransparencies = {}
+                    if DragOutline then
+                        DragOutline.Visible = false
+                        DragOutline.Parent = nil
+                    end
                 end
             end))
         end
-        
+
+        -- ============================================================
+        -- COLORPICKER WINDOW
+        -- ============================================================
         function Library.ColorpickerWindow(self)
             local Popup = {
                 Visible = false,
@@ -1001,11 +998,7 @@ local Library = (function()
                     Visible = false,
                 }, { BackgroundColor3 = 'Inline' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('TextButton', {
@@ -1020,13 +1013,8 @@ local Library = (function()
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Background,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     Parent = Objects.Background,
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
@@ -1045,12 +1033,7 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SaturationOutline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.SaturationOutline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.SaturationBackground = Utility.New('ImageLabel', {
@@ -1062,12 +1045,7 @@ local Library = (function()
                     Parent = Objects.SaturationOutline,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SaturationBackground,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.SaturationBackground, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.SaturationImage = Utility.New('ImageLabel', {
@@ -1080,18 +1058,12 @@ local Library = (function()
                     Image = Library.Saturation,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SaturationImage,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.SaturationImage, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.SaturationPickerOutline = Utility.New('TextButton', {
                     Name = 'SaturationPickerOutline',
                     Size = UDim2.new(0, 6, 0, 6),
-                    Position = UDim2.new(0, 0, 0, 0),
                     BorderSizePixel = 0,
                     Parent = Objects.SaturationImage,
                     Text = '',
@@ -1099,12 +1071,7 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SaturationPickerOutline,
-                    CornerRadius = UDim.new(1, 0),
-                })
+                Utility.New('UICorner', { Parent = Objects.SaturationPickerOutline, CornerRadius = UDim.new(1, 0) })
 
                 ZIndex = ZIndex + 1
                 Objects.SaturationPicker = Utility.New('Frame', {
@@ -1115,12 +1082,7 @@ local Library = (function()
                     Parent = Objects.SaturationPickerOutline,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SaturationPicker,
-                    CornerRadius = UDim.new(1, 0),
-                })
+                Utility.New('UICorner', { Parent = Objects.SaturationPicker, CornerRadius = UDim.new(1, 0) })
 
                 Objects.HueOutline = Utility.New('TextButton', {
                     Name = 'HueOutline',
@@ -1133,12 +1095,7 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.HueOutline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.HueOutline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.HueBackground = Utility.New('Frame', {
@@ -1150,12 +1107,7 @@ local Library = (function()
                     Parent = Objects.HueOutline,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.HueBackground,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.HueBackground, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIGradient', {
                     Color = ColorSequence.new{
                         ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
@@ -1174,7 +1126,6 @@ local Library = (function()
                 Objects.HuePickerOutline = Utility.New('TextButton', {
                     Name = 'HuePickerOutline',
                     Size = UDim2.new(0, 10, 0, 10),
-                    Position = UDim2.new(0, 0, 0, 0),
                     BorderSizePixel = 0,
                     Parent = Objects.HueBackground,
                     Text = '',
@@ -1182,28 +1133,18 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.HuePickerOutline,
-                    CornerRadius = UDim.new(1, 0),
-                })
+                Utility.New('UICorner', { Parent = Objects.HuePickerOutline, CornerRadius = UDim.new(1, 0) })
 
                 ZIndex = ZIndex + 1
                 Objects.HuePicker = Utility.New('Frame', {
-                    Name = 'SaturationPicker',
+                    Name = 'HuePicker',
                     Size = UDim2.new(1, -2, 1, -2),
                     Position = UDim2.new(0, 1, 0, 1),
                     BorderSizePixel = 0,
                     Parent = Objects.HuePickerOutline,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.HuePicker,
-                    CornerRadius = UDim.new(1, 0),
-                })
+                Utility.New('UICorner', { Parent = Objects.HuePicker, CornerRadius = UDim.new(1, 0) })
 
                 Objects.AlphaOutline = Utility.New('TextButton', {
                     Name = 'AlphaOutline',
@@ -1216,12 +1157,7 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.AlphaOutline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.AlphaOutline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.AlphaImage = Utility.New('ImageLabel', {
@@ -1236,27 +1172,17 @@ local Library = (function()
                     TileSize = UDim2.new(0, 6, 0, 6),
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.AlphaImage,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.AlphaImage, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.AlphaBackground = Utility.New('Frame', {
-                    Name = 'SaturationPicker',
+                    Name = 'AlphaBackground',
                     Size = UDim2.new(1, 0, 1, 0),
                     BorderSizePixel = 0,
                     Parent = Objects.AlphaImage,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.AlphaBackground,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.AlphaBackground, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIGradient', {
                     Parent = Objects.AlphaBackground,
                     Rotation = 180,
@@ -1270,7 +1196,6 @@ local Library = (function()
                 Objects.AlphaPickerOutline = Utility.New('TextButton', {
                     Name = 'AlphaPickerOutline',
                     Size = UDim2.new(0, 10, 0, 10),
-                    Position = UDim2.new(0, 0, 0, 0),
                     BorderSizePixel = 0,
                     Parent = Objects.AlphaBackground,
                     Text = '',
@@ -1278,12 +1203,7 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.AlphaPickerOutline,
-                    CornerRadius = UDim.new(1, 0),
-                })
+                Utility.New('UICorner', { Parent = Objects.AlphaPickerOutline, CornerRadius = UDim.new(1, 0) })
 
                 ZIndex = ZIndex + 1
                 Objects.AlphaPicker = Utility.New('Frame', {
@@ -1294,12 +1214,7 @@ local Library = (function()
                     Parent = Objects.AlphaPickerOutline,
                     ZIndex = ZIndex,
                 })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.AlphaPicker,
-                    CornerRadius = UDim.new(1, 0),
-                })
+                Utility.New('UICorner', { Parent = Objects.AlphaPicker, CornerRadius = UDim.new(1, 0) })
             end
 
             local Hue, Sat, Val
@@ -1324,7 +1239,7 @@ local Library = (function()
                 Objects.AlphaBackground.BackgroundColor3 = color
                 Objects.SaturationBackground.BackgroundColor3 = Color3.fromHSV(Popup.HuePos, 1, 1)
             end
-            
+
             function Popup.Open(position)
                 if Popup.Tweening then return end
                 Popup.Tweening = true
@@ -1358,7 +1273,7 @@ local Library = (function()
                     Popup.Tweening = false
                 end))
             end
-            
+
             function Popup.SlideSaturation(input)
                 local SizeX = math.clamp((input.Position.X - Objects.SaturationOutline.AbsolutePosition.X) / Objects.SaturationOutline.AbsoluteSize.X, 0, 1)
                 local SizeY = 1 - math.clamp((input.Position.Y - Objects.SaturationOutline.AbsolutePosition.Y) / Objects.SaturationOutline.AbsoluteSize.Y, 0, 1)
@@ -1460,32 +1375,20 @@ local Library = (function()
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Page Background' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
-                
                 Objects.SideContainer = Utility.New('Frame', {
                     Name = 'SideContainer',
                     Size = UDim2.new(0, 162, 1, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BorderSizePixel = 0,
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Inline' })
-
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SideContainer,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.SideContainer, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
-                
                 Objects.SideBackground = Utility.New('Frame', {
                     Name = 'SideBackground',
                     Size = UDim2.new(1, -2, 1, -2),
@@ -1495,17 +1398,11 @@ local Library = (function()
                     ZIndex = ZIndex,
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Dark Background' })
+                Utility.New('UICorner', { Parent = Objects.SideBackground, CornerRadius = UDim.new(0, 5) })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.SideBackground,
-                    CornerRadius = UDim.new(0, 5),
-                })
-                
                 Library.Dragging(Objects.Outline, Objects.SideBackground)
-                
+
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 8),
@@ -1522,21 +1419,19 @@ local Library = (function()
                     TextYAlignment = Enum.TextYAlignment.Center,
                     FontFace = Library.Font,
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Text = cfg.name,
                     Parent = Objects.SideBackground,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Title Color' })
-                
-                -- Title gradient
+
                 Objects.TitleGradient = Utility.New('UIGradient', {
                     Name = 'TitleGradient',
                     Parent = Objects.Title,
                 })
                 Library.UpdateGradients()
-                
+
                 Objects.Title.Size = UDim2.new(1, 0, 0, Objects.Title.TextBounds.Y + 22)
-                
+
                 Objects.SideScroll = Utility.New('ScrollingFrame', {
                     Name = 'SideScroll',
                     Size = UDim2.new(1, 0, 1, -Objects.Title.AbsoluteSize.Y),
@@ -1552,12 +1447,11 @@ local Library = (function()
                     TopImage = Library.ScrollBar,
                     ScrollBarThickness = 2,
                 }, { ScrollBarImageColor3 = 'Accent' })
-                
+
                 Objects.SideContent = Utility.New('Frame', {
                     Name = 'SideContent',
                     Size = UDim2.new(1, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.SideScroll,
@@ -1578,9 +1472,8 @@ local Library = (function()
                         Objects.SideContent.Size = UDim2.new(1, 0, 0, 0)
                     end
                 end))
-                
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.SideContent,
@@ -1588,7 +1481,7 @@ local Library = (function()
                 })
 
                 Window.SideHolder = Objects.SideContent
-                
+
                 Objects.ResizeBar = Utility.New('Frame', {
                     Name = 'ResizeBar',
                     BorderSizePixel = 0,
@@ -1612,7 +1505,6 @@ local Library = (function()
                 })
 
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 5),
@@ -1670,7 +1562,7 @@ local Library = (function()
             Library.Window = Window
             return setmetatable(Window, Library)
         end
-        
+
         function Library.Info(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, { name = 'Misc' })
@@ -1686,11 +1578,8 @@ local Library = (function()
                     ZIndex = ZIndex,
                 })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 7),
                     PaddingRight = UDim.new(0, 7),
-                    PaddingTop = UDim.new(0, 0),
-                    PaddingBottom = UDim.new(0, 0),
                     Parent = Objects.Holder,
                 })
                 ZIndex = ZIndex + 1
@@ -1701,9 +1590,7 @@ local Library = (function()
                     TextSize = Library.FontSize - 2,
                     FontFace = Library.Font,
                     Size = UDim2.new(0, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.XY,
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
                     Text = cfg.name,
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
@@ -1712,7 +1599,7 @@ local Library = (function()
             Info.ZIndex = ZIndex
             return setmetatable(Info, Library)
         end
-        
+
         function Library.Tab(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -1740,7 +1627,7 @@ local Library = (function()
                     ZIndex = ZIndex,
                 })
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Background = Utility.New('TextButton', {
                     Name = 'Background',
                     Size = UDim2.new(1, 0, 0, 0),
@@ -1759,19 +1646,18 @@ local Library = (function()
                 Objects.SelectionLine = Utility.New('Frame', {
                     Name = 'SelectionLine',
                     Size = UDim2.new(0, 3, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Accent' })
-                
+
                 Utility.Signal(Objects.Background:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
                     Objects.SelectionLine.Size = UDim2.new(0, 3, 1, 0)
                 end))
-                
+
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Content = Utility.New('Frame', {
                     Name = 'Content',
                     Size = UDim2.new(1, 0, 0, 0),
@@ -1783,9 +1669,8 @@ local Library = (function()
                     ZIndex = ZIndex,
                 })
                 ZIndex = ZIndex + 1
-                
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     Parent = Objects.Content,
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1796,8 +1681,6 @@ local Library = (function()
                     Objects.Icon = Utility.New('ImageLabel', {
                         Name = 'Icon',
                         Size = UDim2.new(0, 20, 0, 20),
-                        Position = UDim2.new(0, 0, 0, 0),
-                        AutomaticSize = Enum.AutomaticSize.XY,
                         BackgroundTransparency = 1,
                         Image = cfg.icon,
                         Parent = Objects.Content,
@@ -1812,8 +1695,6 @@ local Library = (function()
                     TextSize = Library.FontSize,
                     FontFace = Library.Font,
                     Size = UDim2.new(0, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
                     Text = cfg.name,
                     Parent = Objects.Content,
                     ZIndex = ZIndex,
@@ -1828,55 +1709,45 @@ local Library = (function()
                     Name = 'Page',
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 1, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Parent = self.PageHolder,
                     Visible = false,
                     ZIndex = ZIndex,
                 })
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Left = Utility.New('Frame', {
                     Name = 'Left',
                     BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
                     Size = UDim2.new(0.5, -2, 1, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Parent = Objects.Page,
                     ZIndex = ZIndex,
                 })
-
                 table.insert(Tab.Sections, Objects.Left)
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     Parent = Objects.Left,
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     VerticalFlex = Enum.UIFlexAlignment.Fill,
                     Padding = UDim.new(0, 8),
                 })
-
                 Tab.left = Objects.Left
-                
+
                 Objects.Right = Utility.New('Frame', {
                     Name = 'Right',
                     BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
                     Size = UDim2.new(0.5, -2, 1, 0),
                     Position = UDim2.new(0.5, 2, 0, 0),
                     Parent = Objects.Page,
                     ZIndex = ZIndex,
                 })
-
                 table.insert(Tab.Sections, Objects.Right)
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     Parent = Objects.Right,
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     VerticalFlex = Enum.UIFlexAlignment.Fill,
                     Padding = UDim.new(0, 8),
                 })
-
                 Tab.right = Objects.Right
             end
 
@@ -1938,7 +1809,6 @@ local Library = (function()
                     end
                 end
             end))
-
             Utility.Signal(Objects.Background.MouseLeave:Connect(function()
                 if not Tab._isSelected then
                     Library.ChangeObjectTheme(Objects.Text, { TextColor3 = 'Dark Text' }, true)
@@ -1962,7 +1832,9 @@ local Library = (function()
             return setmetatable(Tab, Library)
         end
 
-        -- Modified Section: auto-resize based on content, minimum height
+        -- ============================================================
+        -- SECTION (fixed AutoResize=false behavior)
+        -- ============================================================
         function Library.Section(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -1982,13 +1854,13 @@ local Library = (function()
                 Dragging = false,
                 ContentHeight = 0,
             }
-            
+
             local Parent = self[cfg.side:lower()]
             if not Parent then
                 warn("Section side '" .. cfg.side .. "' not found")
                 return
             end
-            
+
             local ZIndex = Section.ZIndex
             local Objects = Section.Objects
 
@@ -1997,31 +1869,19 @@ local Library = (function()
                     Name = 'MainOutline',
                     BorderSizePixel = 0,
                     Size = UDim2.fromScale(1, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Parent = Parent,
                     ZIndex = ZIndex,
                     ClipsDescendants = false,
                 }, { BackgroundColor3 = 'Outline' })
 
-                Objects.TopHider = Utility.New('Frame', {
-                    Name = 'TopHider',
-                    BorderSizePixel = 0,
-                    Size = UDim2.new(1, 0, 0, 5),
-                    Position = UDim2.new(0, 0, 0, 0),
-                    Parent = Objects.MainOutline,
-                    ZIndex = ZIndex,
-                    BackgroundTransparency = 1,
-                })
-                
                 local cornerRadius = 5
                 Utility.New('UICorner', {
-                    Name = 'UICorner',
                     Parent = Objects.MainOutline,
                     CornerRadius = UDim.new(0, cornerRadius),
                 })
-                
+
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Outline = Utility.New('Frame', {
                     Name = 'Background',
                     BorderSizePixel = 0,
@@ -2033,7 +1893,6 @@ local Library = (function()
                 }, { BackgroundColor3 = 'Section Background' })
 
                 Utility.New('UICorner', {
-                    Name = 'UICorner',
                     Parent = Objects.Outline,
                     CornerRadius = UDim.new(0, cornerRadius),
                 })
@@ -2043,9 +1902,9 @@ local Library = (function()
                     MinSize = Vector2.new(0, cfg.minHeight),
                     MaxSize = Vector2.new(math.huge, cfg.maxHeight),
                 })
-                
+
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Dragging = Utility.New('TextButton', {
                     Name = 'Dragging',
                     BorderSizePixel = 0,
@@ -2058,18 +1917,17 @@ local Library = (function()
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 })
-                
+
                 ZIndex = ZIndex + 1
-                
+
                 Objects.AccentLine = Utility.New('Frame', {
                     Name = 'AccentLine',
                     BorderSizePixel = 0,
                     Size = UDim2.new(1, 0, 0, 2),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Accent' })
-                
+
                 Objects.TitleBackground = Utility.New('Frame', {
                     Name = 'TitleBackground',
                     BorderSizePixel = 0,
@@ -2079,15 +1937,14 @@ local Library = (function()
                     ZIndex = ZIndex + 1,
                     AutomaticSize = Enum.AutomaticSize.XY,
                 }, { BackgroundColor3 = 'Section Background' })
-                
+
                 Utility.New('UICorner', {
-                    Name = 'UICorner',
                     Parent = Objects.TitleBackground,
                     CornerRadius = UDim.new(0, 3),
                 })
-                
+
                 ZIndex = ZIndex + 2
-                
+
                 Objects.Title = Utility.New('TextLabel', {
                     Name = 'Title',
                     TextStrokeTransparency = 0.8,
@@ -2101,31 +1958,30 @@ local Library = (function()
                     Parent = Objects.TitleBackground,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Accent' })
-                
+
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 6),
                     PaddingRight = UDim.new(0, 6),
                     PaddingTop = UDim.new(0, 1),
                     PaddingBottom = UDim.new(0, 1),
                     Parent = Objects.TitleBackground,
                 })
-                
+
                 local function PositionTitle()
                     local titleHeight = Objects.Title.TextBounds.Y
                     local bgHeight = titleHeight + 2
                     Objects.TitleBackground.Position = UDim2.new(0, 15, 0, - (bgHeight / 2) + 1)
                 end
-                
+
                 task.spawn(function()
                     task.wait()
                     PositionTitle()
                 end)
-                
+
                 Utility.Signal(Objects.Title:GetPropertyChangedSignal('TextBounds'):Connect(PositionTitle))
-                
+
                 ZIndex = ZIndex + 1
-                
+
                 if cfg.description then
                     Objects.Description = Utility.New('TextLabel', {
                         Name = 'Description',
@@ -2146,7 +2002,7 @@ local Library = (function()
                 end
 
                 local contentTopOffset = cfg.description and 40 or 20
-                
+
                 Objects.Padded = Utility.New('Frame', {
                     Name = 'Padded',
                     BorderSizePixel = 0,
@@ -2156,13 +2012,12 @@ local Library = (function()
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 })
-                
+
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Scrolling = Utility.New('ScrollingFrame', {
                     Name = 'Scrolling',
                     Size = UDim2.new(1, 0, 1, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.Padded,
@@ -2176,25 +2031,12 @@ local Library = (function()
                     ClipsDescendants = true,
                 }, { ScrollBarImageColor3 = 'Accent' })
 
-                Objects.ScrollGradient = Utility.New('UIGradient', {
-                    Name = 'ScrollGradient',
-                    Parent = Objects.Scrolling,
-                    Rotation = 90,
-                    Transparency = NumberSequence.new({
-                        NumberSequenceKeypoint.new(0, 0),
-                        NumberSequenceKeypoint.new(0.05, 0.2),
-                        NumberSequenceKeypoint.new(0.95, 0.2),
-                        NumberSequenceKeypoint.new(1, 0),
-                    }),
-                })
-                
                 ZIndex = ZIndex + 1
-                
+
                 Objects.Content = Utility.New('Frame', {
                     Name = 'Content',
                     Size = UDim2.new(1, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.Scrolling,
@@ -2203,7 +2045,6 @@ local Library = (function()
                 Section.Holder = Objects.Content
 
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Content,
@@ -2212,13 +2053,7 @@ local Library = (function()
 
                 ZIndex = ZIndex + 1
 
-                Utility.Signal(Objects.Scrolling:GetPropertyChangedSignal('AbsoluteCanvasSize'):Connect(function()
-                    if Objects.Scrolling.AbsoluteCanvasSize.Y > Objects.Scrolling.AbsoluteSize.Y then
-                        Objects.Content.Size = UDim2.new(1, -7, 0, 0)
-                    else
-                        Objects.Content.Size = UDim2.new(1, 0, 0, 0)
-                    end
-                    -- Auto-resize the section
+                local function ApplyAutoResize()
                     if cfg.autoResize then
                         local newHeight = math.clamp(Objects.Content.AbsoluteSize.Y + contentTopOffset + 12, cfg.minHeight, cfg.maxHeight)
                         if math.abs(Objects.MainOutline.AbsoluteSize.Y - newHeight) > 2 then
@@ -2226,7 +2061,22 @@ local Library = (function()
                             Objects.Constraint.MaxSize = Vector2.new(math.huge, newHeight)
                             Objects.MainOutline.Size = UDim2.new(1, 0, 0, newHeight)
                         end
+                    else
+                        Objects.Constraint.MinSize = Vector2.new(0, cfg.minHeight)
+                        Objects.Constraint.MaxSize = Vector2.new(math.huge, cfg.maxHeight)
+                        if Objects.MainOutline.AbsoluteSize.Y < cfg.minHeight then
+                            Objects.MainOutline.Size = UDim2.new(1, 0, 0, cfg.minHeight)
+                        end
                     end
+                end
+
+                Utility.Signal(Objects.Scrolling:GetPropertyChangedSignal('AbsoluteCanvasSize'):Connect(function()
+                    if Objects.Scrolling.AbsoluteCanvasSize.Y > Objects.Scrolling.AbsoluteSize.Y then
+                        Objects.Content.Size = UDim2.new(1, -7, 0, 0)
+                    else
+                        Objects.Content.Size = UDim2.new(1, 0, 0, 0)
+                    end
+                    ApplyAutoResize()
                 end))
                 Utility.Signal(Objects.Scrolling:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
                     if Objects.Scrolling.AbsoluteCanvasSize.Y > Objects.Scrolling.AbsoluteSize.Y then
@@ -2248,6 +2098,12 @@ local Library = (function()
                     Parent = Objects.MainOutline,
                     ZIndex = ZIndex,
                 })
+
+                if not cfg.autoResize then
+                    task.defer(function()
+                        Objects.MainOutline.Size = UDim2.new(1, 0, 0, cfg.minHeight)
+                    end)
+                end
             end
 
             Section.ZIndex = ZIndex
@@ -2257,6 +2113,7 @@ local Library = (function()
                 local Resize = Utility.Signal(UserInputService.InputChanged:Connect(function(input)
                     if not Section.Resizing or input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
                     Objects.Constraint.MaxSize = Vector2.new(math.huge, math.clamp(input.Position.Y - Objects.MainOutline.AbsolutePosition.Y, 30, 9e9))
+                    Objects.MainOutline.Size = UDim2.new(1, 0, 0, Objects.MainOutline.AbsoluteSize.Y)
                 end))
                 local ResizeStop = Utility.Signal(UserInputService.InputEnded:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -2298,11 +2155,7 @@ local Library = (function()
                                 Size = UDim2.new(1, 0, 0, Objects.MainOutline.AbsoluteSize.Y),
                                 ZIndex = 5000,
                             }, { BackgroundColor3 = 'Accent' })
-                            Utility.New('UICorner', {
-                                Name = 'UICorner',
-                                Parent = Indicator,
-                                CornerRadius = UDim.new(0, 5),
-                            })
+                            Utility.New('UICorner', { Parent = Indicator, CornerRadius = UDim.new(0, 5) })
                             local Background = Utility.New('Frame', {
                                 Parent = Indicator,
                                 BorderSizePixel = 0,
@@ -2310,16 +2163,7 @@ local Library = (function()
                                 Position = UDim2.new(0, 1, 0, 1),
                                 ZIndex = 5001,
                             }, { BackgroundColor3 = 'Section Background' })
-                            Utility.New('UICorner', {
-                                Name = 'UICorner',
-                                Parent = Background,
-                                CornerRadius = UDim.new(0, 5),
-                            })
-                            Utility.New('UISizeConstraint', {
-                                Parent = Indicator,
-                                MaxSize = Objects.Constraint.MaxSize,
-                                MinSize = Objects.Constraint.MinSize,
-                            })
+                            Utility.New('UICorner', { Parent = Background, CornerRadius = UDim.new(0, 5) })
                         end
                         Indicator.Parent = ClosestHolder
                         Indicator.Position = UDim2.new(0, 0, 0, 0)
@@ -2378,11 +2222,7 @@ local Library = (function()
                     ClipsDescendants = true,
                     Visible = false,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('TextButton', {
                     Name = 'Background',
@@ -2395,13 +2235,8 @@ local Library = (function()
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Background,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     Parent = Objects.Background,
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
@@ -2419,7 +2254,6 @@ local Library = (function()
                     ZIndex = ZIndex,
                 })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
@@ -2495,14 +2329,14 @@ local Library = (function()
                     end
                 end))
             end
-            
+
             function Popup:NestedPopup(cfg)
                 local NestedPopup = Library.PopupMenu(self, cfg)
                 NestedPopup.ParentPopup = self
                 table.insert(self.ChildPopups, NestedPopup)
                 return NestedPopup
             end
-            
+
             function Popup:GetParentChain()
                 local chain = {}
                 local current = self
@@ -2516,7 +2350,7 @@ local Library = (function()
             table.insert(Library.Popups, Popup)
             return setmetatable(Popup, Library)
         end
-        
+
         function Library.Popup(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {size = 120})
@@ -2530,7 +2364,7 @@ local Library = (function()
             do
                 Objects.Icon = Utility.New('ImageButton', {
                     Name = 'Icon',
-                    Size = UDim2.new(0, self.SideHolder.AbsoluteSize.Y, 0, self.SideHolder.AbsoluteSize.Y),
+                    Size = UDim2.new(0, 15, 0, 15),
                     BackgroundTransparency = 1,
                     AutoButtonColor = false,
                     Style = Enum.ButtonStyle.Custom,
@@ -2547,21 +2381,6 @@ local Library = (function()
                 (Library.ColorpickerWindow and type(Library.ColorpickerWindow) == 'table' and Library.ColorpickerWindow.Objects and Library.ColorpickerWindow.Objects.Outline) or nil,
             }
             Popup.ParentElement = self
-
-            function Cog.InsideBounds(input)
-                for _, obj in Popup.BoundObjects do
-                    if obj and Utility.MouseOver(obj, input) then return true end
-                end
-                for _, childPopup in pairs(Popup.ChildPopups) do
-                    if childPopup.Objects.Outline.Visible then
-                        if Utility.MouseOver(childPopup.Objects.Outline, input) then return true end
-                        for _, nestedObj in pairs(childPopup.BoundObjects or {}) do
-                            if nestedObj and Utility.MouseOver(nestedObj, input) then return true end
-                        end
-                    end
-                end
-                return false
-            end
 
             if not Library.GlobalPopupClickHandler then
                 Library.GlobalPopupClickHandler = true
@@ -2644,8 +2463,10 @@ local Library = (function()
 
             return Popup
         end
-        
-        -- Modified Toggle: checkbox on the LEFT, fixed padding
+
+        -- ============================================================
+        -- TOGGLE (checkbox on the LEFT, properly aligned with text)
+        -- ============================================================
         function Library.Toggle(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -2674,7 +2495,6 @@ local Library = (function()
                 Objects.Holder = Utility.New('Frame', {
                     Name = 'Holder',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
@@ -2683,7 +2503,6 @@ local Library = (function()
                 })
 
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
@@ -2691,35 +2510,30 @@ local Library = (function()
                 })
 
                 ZIndex = ZIndex + 1
+
                 Objects.Line = Utility.New('TextButton', {
                     Name = 'Line',
-                    Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
+                    Size = UDim2.new(1, 0, 0, 16),
                     BackgroundTransparency = 1,
                     AutoButtonColor = false,
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     Style = Enum.ButtonStyle.Custom,
                     Text = '',
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
                 })
 
-                -- Horizontal layout: checkbox (left), then text + side holder
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Objects.Line,
-                    Padding = UDim.new(0, 4),
+                    Padding = UDim.new(0, 8),
                 })
 
-                -- LEFT: checkbox
                 Objects.Outline = Utility.New('Frame', {
                     Name = 'Outline',
-                    Size = UDim2.new(0, 16, 0, 16),
+                    Size = UDim2.new(0, 14, 0, 14),
                     LayoutOrder = 1,
-                    Position = UDim2.fromOffset(0, 0),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 0,
                     Parent = Objects.Line,
@@ -2727,9 +2541,8 @@ local Library = (function()
                 }, { BackgroundColor3 = 'Inline' })
 
                 Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
                     Parent = Objects.Outline,
+                    CornerRadius = UDim.new(0, 4),
                 })
 
                 ZIndex = ZIndex + 1
@@ -2743,9 +2556,8 @@ local Library = (function()
                 }, { BackgroundColor3 = 'Background' })
 
                 Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
                     Parent = Objects.Background,
+                    CornerRadius = UDim.new(0, 4),
                 })
 
                 ZIndex = ZIndex + 1
@@ -2763,24 +2575,22 @@ local Library = (function()
                 })
                 ZIndex = ZIndex + 1
 
-                -- RIGHT: text container
                 Objects.Text = Utility.New('TextLabel', {
                     Name = 'Text',
                     TextStrokeTransparency = 0.8,
                     BackgroundTransparency = 1,
                     TextSize = Library.FontSize,
                     FontFace = Library.Font,
-                    Size = UDim2.new(1, -22, 0, 0),
+                    Size = UDim2.new(1, -22, 0, 16),
                     LayoutOrder = 2,
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     Text = cfg.name,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
                     Parent = Objects.Line,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Dark Text' })
 
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     HorizontalAlignment = Enum.HorizontalAlignment.Right,
@@ -2794,7 +2604,6 @@ local Library = (function()
                     Name = 'SideHolder',
                     Size = UDim2.new(0, 0, 1, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.Text,
@@ -2802,10 +2611,10 @@ local Library = (function()
                 })
 
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Objects.SideHolder,
                     Padding = UDim.new(0, 2),
                 })
@@ -2835,7 +2644,6 @@ local Library = (function()
                     Objects.ChildrenHolder = Utility.New('Frame', {
                         Name = 'ChildrenHolder',
                         Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         AutomaticSize = Enum.AutomaticSize.Y,
                         BorderSizePixel = 0,
@@ -2846,7 +2654,6 @@ local Library = (function()
                     })
 
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Vertical,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         Parent = Objects.ChildrenHolder,
@@ -2889,7 +2696,7 @@ local Library = (function()
                     Objects.ChildrenHolder.Visible = visibility
                 end))
             end
-            
+
             function Toggle.Set(value)
                 if Toggle.Tweening then return end
                 Toggle.Value = value
@@ -2909,7 +2716,7 @@ local Library = (function()
                     Library.OnToggleChange(cfg.name, value)
                 end
             end
-            
+
             function Toggle.Enable()
                 Toggle.Set(not Toggle.Value)
             end
@@ -2920,8 +2727,10 @@ local Library = (function()
 
             return setmetatable(Toggle, Library)
         end
-        
-        -- Divider control
+
+        -- ============================================================
+        -- DIVIDER
+        -- ============================================================
         function Library.Divider(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -2982,16 +2791,16 @@ local Library = (function()
                         Parent = Objects.Holder,
                         ZIndex = ZIndex + 1,
                     }, { TextColor3 = 'Light Text' })
-                    
+
                     ZIndex = ZIndex + 2
-                    
+
                     task.spawn(function()
                         task.wait()
                         local labelWidth = Objects.Label.AbsoluteSize.X
                         Objects.LeftLine.Size = UDim2.new(0.5, -(labelWidth / 2) - 8, 0, cfg.thickness)
                         Objects.RightLine.Size = UDim2.new(0.5, -(labelWidth / 2) - 8, 0, cfg.thickness)
                     end)
-                    
+
                     Utility.Signal(Objects.Label:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
                         local labelWidth = Objects.Label.AbsoluteSize.X
                         Objects.LeftLine.Size = UDim2.new(0.5, -(labelWidth / 2) - 8, 0, cfg.thickness)
@@ -3003,8 +2812,10 @@ local Library = (function()
             Divider.ZIndex = ZIndex
             return setmetatable(Divider, Library)
         end
-        
-        -- Modified Slider: thicker default (12 instead of 8), compact mode + thickness + gradient
+
+        -- ============================================================
+        -- SLIDER
+        -- ============================================================
         function Library.Slider(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3019,7 +2830,7 @@ local Library = (function()
                 flag = nil,
                 children = nil,
                 compact = false,
-                thickness = 12, -- Thicker default
+                thickness = 12,
                 gradient = true,
             })
 
@@ -3041,7 +2852,6 @@ local Library = (function()
                 Objects.Holder = Utility.New('Frame', {
                     Name = 'Holder',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
@@ -3050,7 +2860,6 @@ local Library = (function()
                 })
 
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
@@ -3058,12 +2867,10 @@ local Library = (function()
                 })
 
                 if not cfg.compact then
-                    -- Full layout with label on top
                     ZIndex = ZIndex + 1
                     Objects.Line = Utility.New('TextButton', {
                         Name = 'Line',
                         Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         AutoButtonColor = false,
                         AutomaticSize = Enum.AutomaticSize.Y,
@@ -3074,7 +2881,6 @@ local Library = (function()
                     })
 
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Vertical,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         Parent = Objects.Line,
@@ -3097,7 +2903,6 @@ local Library = (function()
                     }, { TextColor3 = 'Dark Text' })
 
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         HorizontalAlignment = Enum.HorizontalAlignment.Right,
@@ -3110,7 +2915,6 @@ local Library = (function()
                         Name = 'SideHolder',
                         Size = UDim2.new(0, 0, 1, 0),
                         AutomaticSize = Enum.AutomaticSize.X,
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         BorderSizePixel = 0,
                         Parent = Objects.Text,
@@ -3118,7 +2922,6 @@ local Library = (function()
                     })
 
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         HorizontalAlignment = Enum.HorizontalAlignment.Right,
@@ -3165,7 +2968,6 @@ local Library = (function()
                 Objects.Outline = Utility.New('TextButton', {
                     Name = 'Line',
                     Size = UDim2.new(1, 0, 0, cfg.thickness),
-                    Position = UDim2.fromOffset(0, 0),
                     BorderSizePixel = 0,
                     AutoButtonColor = false,
                     Style = Enum.ButtonStyle.Custom,
@@ -3174,11 +2976,7 @@ local Library = (function()
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
@@ -3191,11 +2989,7 @@ local Library = (function()
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Background' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.Accent = Utility.New('Frame', {
@@ -3206,13 +3000,8 @@ local Library = (function()
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Accent' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Accent,
-                })
+                Utility.New('UICorner', { Parent = Objects.Accent, CornerRadius = UDim.new(0, 5) })
 
-                -- Slider gradient
                 if cfg.gradient then
                     Objects.SliderGradient = Utility.New('UIGradient', {
                         Name = 'SliderGradient',
@@ -3221,7 +3010,6 @@ local Library = (function()
                     Library.UpdateGradients()
                 end
 
-                -- Compact label inside the slider
                 if cfg.compact then
                     ZIndex = ZIndex + 1
                     Objects.CompactLabel = Utility.New('TextLabel', {
@@ -3245,7 +3033,7 @@ local Library = (function()
 
             function Slider.Set(value)
                 Slider.Value = math.clamp(Utility.Round(value, cfg.float), cfg.min, cfg.max)
-                
+
                 if cfg.compact and Objects.CompactLabel then
                     Objects.CompactLabel.Text = cfg.name .. ': ' .. string.format(cfg.suffix, tostring(Slider.Value))
                 elseif Objects.Value then
@@ -3255,7 +3043,7 @@ local Library = (function()
                 Library.Tween(Objects.Accent, {
                     Size = UDim2.new((Slider.Value - cfg.min) / (cfg.max - cfg.min), 0, 1, 0),
                 })
-                
+
                 if Objects.Text then
                     Library.ChangeObjectTheme(Objects.Text, {
                         TextColor3 = value > cfg.min and 'Text' or 'Dark Text',
@@ -3266,7 +3054,7 @@ local Library = (function()
                         TextColor3 = value > cfg.min and 'Text' or 'Dark Text',
                     }, true)
                 end
-                
+
                 cfg.callback(Slider.Value)
                 Library.Flags[cfg.flag] = Slider.Value
             end
@@ -3290,7 +3078,10 @@ local Library = (function()
             Library.ConfigFlags[cfg.flag] = Slider.Set
             return setmetatable(Slider, Library)
         end
-        
+
+        -- ============================================================
+        -- BUTTON
+        -- ============================================================
         function Library.Button(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3324,11 +3115,7 @@ local Library = (function()
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
 
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
@@ -3340,13 +3127,8 @@ local Library = (function()
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingTop = UDim.new(0, 2),
                     PaddingBottom = UDim.new(0, 5),
                     PaddingLeft = UDim.new(0, 5),
@@ -3402,7 +3184,7 @@ local Library = (function()
                 end)
                 coroutine.resume(Button.Coroutine)
             end
-            
+
             function Button.Click()
                 if cfg.confirm then
                     if Button.Clicked then
@@ -3426,12 +3208,14 @@ local Library = (function()
             Utility.Signal(Objects.Outline.MouseButton1Click:Connect(Button.Click))
             return setmetatable(Button, Library)
         end
-        
+
+        -- ============================================================
+        -- LIST (a vertical list with select)
+        -- ============================================================
         function Library.List(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
                 name = 'New List',
-                description = nil,
                 value = 'value1',
                 values = { 'value1','value2','value3','value4','value5' },
                 multi = false,
@@ -3441,7 +3225,7 @@ local Library = (function()
             })
             if not cfg.flag then cfg.flag = cfg.name end
 
-            local List = { ZIndex = self.ZIndex, Objects = {}, Popup = {}, Items = {}, Value = nil }
+            local List = { ZIndex = self.ZIndex, Objects = {}, Items = {}, Value = nil }
             local ZIndex = List.ZIndex
             local Objects = List.Objects
 
@@ -3449,40 +3233,20 @@ local Library = (function()
                 Objects.Holder = Utility.New('Frame', {
                     Name = 'Holder',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
                     Parent = self.Holder,
                     ZIndex = ZIndex,
                 })
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
                     Padding = UDim.new(0, 5),
                 })
-                ZIndex = ZIndex + 1
-                Objects.Line = Utility.New('TextButton', {
-                    Name = 'Line',
-                    Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
-                    BackgroundTransparency = 1,
-                    AutoButtonColor = false,
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    Style = Enum.ButtonStyle.Custom,
-                    Text = '',
-                    Parent = Objects.Holder,
-                    ZIndex = ZIndex,
-                })
-                Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Vertical,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    Parent = Objects.Line,
-                    Padding = UDim.new(0, 2),
-                })
+
                 ZIndex = ZIndex + 1
                 Objects.Text = Utility.New('TextLabel', {
                     Name = 'Text',
@@ -3494,42 +3258,14 @@ local Library = (function()
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Text = cfg.name,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = Objects.Line,
+                    Parent = Objects.Holder,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Dark Text' })
-                Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
-                    Parent = Objects.Text,
-                    Padding = UDim.new(0, 2),
-                })
-                ZIndex = ZIndex + 1
-                Objects.SideHolder = Utility.New('Frame', {
-                    Name = 'SideHolder',
-                    Size = UDim2.new(0, 0, 1, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    Position = UDim2.fromOffset(0, 0),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    Parent = Objects.Text,
-                    ZIndex = ZIndex,
-                })
-                Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
-                    Parent = Objects.SideHolder,
-                    Padding = UDim.new(0, 2),
-                })
-                List.SideHolder = Objects.SideHolder
+
                 ZIndex = ZIndex + 1
                 Objects.Outline = Utility.New('TextButton', {
                     Name = 'Outline',
                     Size = UDim2.new(1, 0, 0, cfg.size),
-                    Position = UDim2.fromOffset(0, 0),
                     BorderSizePixel = 0,
                     AutoButtonColor = false,
                     Style = Enum.ButtonStyle.Custom,
@@ -3537,11 +3273,8 @@ local Library = (function()
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
+
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
                     Name = 'Background',
@@ -3552,24 +3285,19 @@ local Library = (function()
                     ZIndex = ZIndex,
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 5),
                     PaddingBottom = UDim.new(0, 5),
                     Parent = Objects.Background,
                 })
+
                 ZIndex = ZIndex + 1
                 Objects.Scrolling = Utility.New('ScrollingFrame', {
                     Name = 'Scrolling',
                     Size = UDim2.new(1, 0, 1, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.Background,
@@ -3581,19 +3309,18 @@ local Library = (function()
                     TopImage = Library.ScrollBar,
                     ScrollBarThickness = 2,
                 }, { ScrollBarImageColor3 = 'Accent' })
+
                 ZIndex = ZIndex + 1
                 Objects.Content = Utility.New('Frame', {
                     Name = 'Content',
                     Size = UDim2.new(1, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.Scrolling,
                     ZIndex = ZIndex,
                 })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     HorizontalAlignment = Enum.HorizontalAlignment.Center,
@@ -3644,11 +3371,12 @@ local Library = (function()
                     Library.Flags[cfg.flag] = List.Value
                 end
             end
-            
+
             function List.Add(name)
                 local Item = { Objects = {}, Name = name, Selected = false }
                 local Objs = Item.Objects
-                do                    Objs.Text = Utility.New('TextButton', {
+                do
+                    Objs.Text = Utility.New('TextButton', {
                         Name = 'Text',
                         TextStrokeTransparency = 0.8,
                         BackgroundTransparency = 1,
@@ -3676,7 +3404,7 @@ local Library = (function()
                 table.insert(List.Items, Item)
                 return Item
             end
-            
+
             function List.Refresh(tbl)
                 for _, item in List.Items do
                     item.Objects.Text:Destroy()
@@ -3697,8 +3425,10 @@ local Library = (function()
             Library.ConfigFlags[cfg.flag] = List.Set
             return setmetatable(List, Library)
         end
-        
-        -- Modified Dropdown: uses gradient by default instead of background color, has its own color picker support
+
+        -- ============================================================
+        -- DROPDOWN
+        -- ============================================================
         function Library.Dropdown(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3733,25 +3463,24 @@ local Library = (function()
                 Objects.Holder = Utility.New('Frame', {
                     Name = 'Holder',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
                     Parent = self.Holder,
                     ZIndex = ZIndex,
                 })
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
                     Padding = UDim.new(0, 5),
                 })
+
                 ZIndex = ZIndex + 1
                 Objects.Line = Utility.New('TextButton', {
                     Name = 'Line',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     AutoButtonColor = false,
                     AutomaticSize = Enum.AutomaticSize.Y,
@@ -3760,13 +3489,14 @@ local Library = (function()
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
                 })
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Line,
                     Padding = UDim.new(0, 2),
                 })
+
                 ZIndex = ZIndex + 1
                 Objects.Text = Utility.New('TextLabel', {
                     Name = 'Text',
@@ -3781,33 +3511,34 @@ local Library = (function()
                     Parent = Objects.Line,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Dark Text' })
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     HorizontalAlignment = Enum.HorizontalAlignment.Right,
                     Parent = Objects.Text,
                     Padding = UDim.new(0, 2),
                 })
+
                 ZIndex = ZIndex + 1
                 Objects.SideHolder = Utility.New('Frame', {
                     Name = 'SideHolder',
                     Size = UDim2.new(0, 0, 1, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Objects.Text,
                     ZIndex = ZIndex,
                 })
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     HorizontalAlignment = Enum.HorizontalAlignment.Right,
                     Parent = Objects.SideHolder,
                     Padding = UDim.new(0, 2),
                 })
+
                 Dropdown.SideHolder = Objects.SideHolder
                 ZIndex = ZIndex + 1
 
@@ -3832,7 +3563,6 @@ local Library = (function()
                 Objects.Outline = Utility.New('TextButton', {
                     Name = 'Outline',
                     Size = UDim2.new(1, 0, 0, 20),
-                    Position = UDim2.fromOffset(0, 0),
                     BorderSizePixel = 0,
                     AutoButtonColor = false,
                     Style = Enum.ButtonStyle.Custom,
@@ -3854,11 +3584,8 @@ local Library = (function()
                     end
                 end))
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
+
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
                     Name = 'Background',
@@ -3870,13 +3597,8 @@ local Library = (function()
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Background' })
 
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 2),
@@ -3884,7 +3606,6 @@ local Library = (function()
                     Parent = Objects.Background,
                 })
 
-                -- Dropdown uses gradient instead of solid background
                 if cfg.gradient then
                     Objects.DropdownGradient = Utility.New('UIGradient', {
                         Name = 'DropdownGradient',
@@ -3903,12 +3624,12 @@ local Library = (function()
                     Size = UDim2.new(1, 0, 1, -2),
                     Text = 'Value',
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Text' })
                 ZIndex = ZIndex + 1
 
-                -- Own color picker for dropdowns
                 if cfg.colorPicker then
                     Objects.ColorPicker = self:Colorpicker({
                         name = cfg.name .. ' Color',
@@ -3940,11 +3661,8 @@ local Library = (function()
                 if self.BoundObjects then
                     table.insert(self.BoundObjects, Popup.Outline)
                 end
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Popup.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Popup.Outline, CornerRadius = UDim.new(0, 5) })
+
                 ZIndex = ZIndex + 1
                 Popup.Background = Utility.New('TextButton', {
                     Name = 'Background',
@@ -3957,24 +3675,19 @@ local Library = (function()
                     Parent = Popup.Outline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Popup.Background,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Popup.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
-                    Parent = Popup.Background,
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 5),
                     PaddingBottom = UDim.new(0, 5),
+                    Parent = Popup.Background,
                 })
+
                 ZIndex = ZIndex + 1
                 Popup.Scroll = Utility.New('ScrollingFrame', {
                     Name = 'Scroll',
                     Size = UDim2.new(1, 0, 1, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Parent = Popup.Background,
@@ -3986,6 +3699,7 @@ local Library = (function()
                     TopImage = Library.ScrollBar,
                     ScrollBarThickness = 2,
                 }, { ScrollBarImageColor3 = 'Accent' })
+
                 Popup.Holder = Utility.New('Frame', {
                     Name = 'Holder',
                     Size = UDim2.new(1, 0, 0, 0),
@@ -3995,8 +3709,8 @@ local Library = (function()
                     Parent = Popup.Scroll,
                     ZIndex = ZIndex,
                 })
+
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Popup.Holder,
@@ -4046,7 +3760,7 @@ local Library = (function()
                     end
                 end
             end
-            
+
             function Dropdown.Size()
                 local Size = 0
                 local Count = 0
@@ -4060,7 +3774,7 @@ local Library = (function()
                 Size = Size + 10
                 return Size
             end
-            
+
             function Dropdown.Open()
                 if Dropdown.Tweening then return end
                 Dropdown.Tweening = true
@@ -4090,7 +3804,7 @@ local Library = (function()
                     Dropdown.Tweening = false
                 end))
             end
-            
+
             function Dropdown.Set(value, ignore)
                 if cfg.multi then
                     if type(value) == 'table' then
@@ -4134,7 +3848,7 @@ local Library = (function()
                     Library.Flags[cfg.flag] = Dropdown.Value
                 end
             end
-            
+
             function Dropdown.Add(name)
                 if type(name) ~= 'string' then return end
                 local Item = { Objects = {}, Name = name, Selected = false }
@@ -4168,7 +3882,7 @@ local Library = (function()
                 table.insert(Dropdown.Items, Item)
                 return Item
             end
-            
+
             function Dropdown.Refresh(tbl)
                 for _, item in Dropdown.Items do
                     item.Objects.Text:Destroy()
@@ -4192,7 +3906,10 @@ local Library = (function()
             table.insert(Library.Dropdowns, Dropdown)
             return setmetatable(Dropdown, Library)
         end
-        
+
+        -- ============================================================
+        -- COLORPICKER (aligned with text)
+        -- ============================================================
         function Library.Colorpicker(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4219,7 +3936,6 @@ local Library = (function()
                     Objects.Holder = Utility.New('Frame', {
                         Name = 'Holder',
                         Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         AutomaticSize = Enum.AutomaticSize.Y,
                         BorderSizePixel = 0,
@@ -4227,7 +3943,6 @@ local Library = (function()
                         ZIndex = ZIndex,
                     })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Vertical,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         Parent = Objects.Holder,
@@ -4236,22 +3951,20 @@ local Library = (function()
                     ZIndex = ZIndex + 1
                     Objects.Line = Utility.New('TextButton', {
                         Name = 'Line',
-                        Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.fromOffset(0, 0),
+                        Size = UDim2.new(1, 0, 0, 16),
                         BackgroundTransparency = 1,
                         AutoButtonColor = false,
-                        AutomaticSize = Enum.AutomaticSize.Y,
                         Style = Enum.ButtonStyle.Custom,
                         Text = '',
                         Parent = Objects.Holder,
                         ZIndex = ZIndex,
                     })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
-                        FillDirection = Enum.FillDirection.Vertical,
+                        FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
                         Parent = Objects.Line,
-                        Padding = UDim.new(0, 2),
+                        Padding = UDim.new(0, 8),
                     })
                     ZIndex = ZIndex + 1
                     Objects.Text = Utility.New('TextLabel', {
@@ -4260,18 +3973,18 @@ local Library = (function()
                         BackgroundTransparency = 1,
                         TextSize = Library.FontSize,
                         FontFace = Library.Font,
-                        Size = UDim2.new(1, 0, 0, 0),
-                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2.new(1, -30, 0, 16),
                         Text = cfg.name,
                         TextXAlignment = Enum.TextXAlignment.Left,
+                        TextYAlignment = Enum.TextYAlignment.Center,
                         Parent = Objects.Line,
                         ZIndex = ZIndex,
                     }, { TextColor3 = 'Dark Text' })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
                         Parent = Objects.Text,
                         Padding = UDim.new(0, 2),
                     })
@@ -4280,17 +3993,16 @@ local Library = (function()
                         Name = 'SideHolder',
                         Size = UDim2.new(0, 0, 1, 0),
                         AutomaticSize = Enum.AutomaticSize.X,
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         BorderSizePixel = 0,
                         Parent = Objects.Text,
                         ZIndex = ZIndex,
                     })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
                         Parent = Objects.SideHolder,
                         Padding = UDim.new(0, 2),
                     })
@@ -4301,8 +4013,7 @@ local Library = (function()
                 local Parent = self.SideHolder or Objects.Text
                 Objects.Outline = Utility.New('TextButton', {
                     Name = 'Outline',
-                    Size = UDim2.new(0, 30, 0, 15),
-                    Position = UDim2.fromOffset(0, 0),
+                    Size = UDim2.new(0, 24, 0, 14),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 0,
                     Text = '',
@@ -4311,11 +4022,7 @@ local Library = (function()
                     Parent = Parent,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 4) })
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
                     Name = 'Background',
@@ -4326,11 +4033,7 @@ local Library = (function()
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 4) })
                 ZIndex = ZIndex + 1
             end
             Colorpicker.ZIndex = ZIndex
@@ -4380,7 +4083,10 @@ local Library = (function()
             Library.ConfigFlags[cfg.flag] = Colorpicker.Set
             return setmetatable(Colorpicker, Library)
         end
-        
+
+        -- ============================================================
+        -- TEXTBOX
+        -- ============================================================
         function Library.Textbox(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4409,11 +4115,7 @@ local Library = (function()
                     ZIndex = ZIndex,
                     ClipsDescendants = true,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
                     Name = 'Background',
@@ -4423,13 +4125,8 @@ local Library = (function()
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingTop = UDim.new(0, 2),
                     PaddingBottom = UDim.new(0, 5),
                     PaddingLeft = UDim.new(0, 5),
@@ -4474,7 +4171,10 @@ local Library = (function()
             Library.ConfigFlags[cfg.flag] = Textbox.Set
             return setmetatable(Textbox, Library)
         end
-        
+
+        -- ============================================================
+        -- KEYBIND
+        -- ============================================================
         function Library.Keybind(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4507,7 +4207,6 @@ local Library = (function()
                     Objects.Holder = Utility.New('Frame', {
                         Name = 'Holder',
                         Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         AutomaticSize = Enum.AutomaticSize.Y,
                         BorderSizePixel = 0,
@@ -4515,31 +4214,10 @@ local Library = (function()
                         ZIndex = ZIndex,
                     })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Vertical,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         Parent = Objects.Holder,
                         Padding = UDim.new(0, 5),
-                    })
-                    ZIndex = ZIndex + 1
-                    Objects.Line = Utility.New('TextButton', {
-                        Name = 'Line',
-                        Size = UDim2.new(1, 0, 0, 0),
-                        Position = UDim2.fromOffset(0, 0),
-                        BackgroundTransparency = 1,
-                        AutoButtonColor = false,
-                        AutomaticSize = Enum.AutomaticSize.Y,
-                        Style = Enum.ButtonStyle.Custom,
-                        Text = '',
-                        Parent = Objects.Holder,
-                        ZIndex = ZIndex,
-                    })
-                    Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
-                        FillDirection = Enum.FillDirection.Vertical,
-                        SortOrder = Enum.SortOrder.LayoutOrder,
-                        Parent = Objects.Line,
-                        Padding = UDim.new(0, 2),
                     })
                     ZIndex = ZIndex + 1
                     Objects.Text = Utility.New('TextLabel', {
@@ -4548,18 +4226,18 @@ local Library = (function()
                         BackgroundTransparency = 1,
                         TextSize = Library.FontSize,
                         FontFace = Library.Font,
-                        Size = UDim2.new(1, 0, 0, 0),
-                        AutomaticSize = Enum.AutomaticSize.Y,
+                        Size = UDim2.new(1, 0, 0, 16),
                         Text = cfg.name,
                         TextXAlignment = Enum.TextXAlignment.Left,
-                        Parent = Objects.Line,
+                        TextYAlignment = Enum.TextYAlignment.Center,
+                        Parent = Objects.Holder,
                         ZIndex = ZIndex,
                     }, { TextColor3 = 'Dark Text' })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
                         Parent = Objects.Text,
                         Padding = UDim.new(0, 2),
                     })
@@ -4568,17 +4246,16 @@ local Library = (function()
                         Name = 'SideHolder',
                         Size = UDim2.new(0, 0, 1, 0),
                         AutomaticSize = Enum.AutomaticSize.X,
-                        Position = UDim2.fromOffset(0, 0),
                         BackgroundTransparency = 1,
                         BorderSizePixel = 0,
                         Parent = Objects.Text,
                         ZIndex = ZIndex,
                     })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                        VerticalAlignment = Enum.VerticalAlignment.Center,
                         Parent = Objects.SideHolder,
                         Padding = UDim.new(0, 2),
                     })
@@ -4597,7 +4274,7 @@ local Library = (function()
                     ZIndex = ZIndex,
                     ScaleType = Enum.ScaleType.Crop,
                 }, { ImageColor3 = 'Text' })
-                Objects.Icon.Size = UDim2.new(0, Parent.AbsoluteSize.Y, 0, Parent.AbsoluteSize.Y)
+                Objects.Icon.Size = UDim2.new(0, Parent.AbsoluteSize.Y > 0 and Parent.AbsoluteSize.Y or 16, 0, Parent.AbsoluteSize.Y > 0 and Parent.AbsoluteSize.Y or 16)
             end
             Keybind.ZIndex = ZIndex
             local Popup = Keybind.Popup
@@ -4613,11 +4290,7 @@ local Library = (function()
                     ClipsDescendants = true,
                     Visible = false,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Popup.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Popup.Outline, CornerRadius = UDim.new(0, 5) })
                 ZIndex = ZIndex + 1
                 Popup.Background = Utility.New('TextButton', {
                     Name = 'Background',
@@ -4630,18 +4303,13 @@ local Library = (function()
                     Parent = Popup.Outline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Popup.Background,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Popup.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
-                    Parent = Popup.Background,
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 5),
                     PaddingBottom = UDim.new(0, 5),
+                    Parent = Popup.Background,
                 })
                 ZIndex = ZIndex + 1
                 Popup.Holder = Utility.New('Frame', {
@@ -4654,7 +4322,6 @@ local Library = (function()
                     ZIndex = ZIndex,
                 })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Popup.Holder,
@@ -4663,19 +4330,18 @@ local Library = (function()
                 Popup.Line = Utility.New('TextButton', {
                     Name = 'Line',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundTransparency = 1,
                     AutoButtonColor = false,
-                    AutomaticSize = Enum.AutomaticSize.Y,
                     Style = Enum.ButtonStyle.Custom,
                     Text = '',
                     Parent = Popup.Holder,
                     ZIndex = ZIndex,
                 })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Vertical,
+                    FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Popup.Line,
                     Padding = UDim.new(0, 2),
                 })
@@ -4686,26 +4352,25 @@ local Library = (function()
                     BackgroundTransparency = 1,
                     TextSize = Library.FontSize,
                     FontFace = Library.Font,
-                    Size = UDim2.new(1, 0, 0, 0),
-                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Size = UDim2.new(1, -30, 0, 16),
                     Text = 'Key',
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
                     Parent = Popup.Line,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Dark Text' })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     HorizontalAlignment = Enum.HorizontalAlignment.Right,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Popup.Text,
                     Padding = UDim.new(0, 2),
                 })
                 ZIndex = ZIndex + 1
                 Popup.KeyOutline = Utility.New('TextButton', {
                     Name = 'Outline',
-                    Size = UDim2.new(0, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
+                    Size = UDim2.new(0, 25, 0, 14),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 0,
                     Parent = Popup.Text,
@@ -4714,12 +4379,7 @@ local Library = (function()
                     Style = Enum.ButtonStyle.Custom,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-                Popup.KeyOutline.Size = UDim2.new(0, 25, 0, Popup.Text.AbsoluteSize.Y)
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Popup.KeyOutline,
-                })
+                Utility.New('UICorner', { Parent = Popup.KeyOutline, CornerRadius = UDim.new(0, 4) })
                 ZIndex = ZIndex + 1
                 Popup.KeyBackground = Utility.New('Frame', {
                     Name = 'Background',
@@ -4729,11 +4389,7 @@ local Library = (function()
                     Parent = Popup.KeyOutline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Popup.KeyBackground,
-                })
+                Utility.New('UICorner', { Parent = Popup.KeyBackground, CornerRadius = UDim.new(0, 4) })
                 ZIndex = ZIndex + 1
                 Popup.Key = Utility.New('TextLabel', {
                     Name = 'Text',
@@ -4749,11 +4405,25 @@ local Library = (function()
             end
             Keybind.ZIndex = ZIndex
 
+            local function refreshKeybindList()
+                if Library.KeybindList then
+                    local keyStr = tostring(Keybind.Key):gsub('Enum.KeyCode.', ''):gsub('Enum.UserInputType.', '')
+                    if keyStr == 'Unknown' or keyStr == '' then keyStr = nil end
+                    -- MODIFIED: Only add to keybind list if enabled (Value is true)
+                    if Keybind.Value and keyStr then
+                        Library.KeybindList:AddBind(cfg.name, keyStr, Keybind.Mode)
+                    else
+                        Library.KeybindList:RemoveBind(cfg.name)
+                    end
+                end
+            end
+
             function Keybind.Set(value, ignore)
                 if type(value) == 'table' then
                     for _, v in value do
                         Keybind.Set(v, true)
                     end
+                    refreshKeybindList()
                     return
                 end
                 local Type = typeof(value)
@@ -4762,7 +4432,7 @@ local Library = (function()
                     value = (value == Enum.KeyCode.Unknown and 'None' or value.Name)
                     Popup.Key.Text = Library.KeyConverters[value:lower()] or value
                     Library.Tween(Popup.KeyOutline, {
-                        Size = UDim2.new(0, Popup.Key.TextBounds.X + 10, 0, Popup.Text.AbsoluteSize.Y),
+                        Size = UDim2.new(0, Popup.Key.TextBounds.X + 10, 0, 14),
                     })
                 elseif Type == 'boolean' then
                     if Keybind.Mode == 'Always' and not value then
@@ -4791,6 +4461,7 @@ local Library = (function()
                     key = Keybind.Key,
                     mode = Keybind.Mode,
                 }
+                refreshKeybindList()
             end
 
             Popup.Dropdown = Library.Dropdown({
@@ -4901,10 +4572,12 @@ local Library = (function()
             end))
             Keybind.Set({ cfg.key, cfg.mode, cfg.value }, true)
             Library.ConfigFlags[string.format('%s_data', cfg.flag)] = Keybind.Set
-            table.insert(Library.Keybinds, Keybind) -- Register keybind globally
             return setmetatable(Keybind, Library)
         end
-        
+
+        -- ============================================================
+        -- LABEL
+        -- ============================================================
         function Library.Label(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4921,7 +4594,6 @@ local Library = (function()
                 Objects.Holder = Utility.New('Frame', {
                     Name = 'Holder',
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.fromOffset(0, 0),
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
@@ -4929,7 +4601,6 @@ local Library = (function()
                     ZIndex = ZIndex,
                 })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
@@ -4943,7 +4614,6 @@ local Library = (function()
                     TextSize = cfg.bold and Library.FontSize or Library.FontSize - 2,
                     FontFace = Library.Font,
                     Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
                     Text = cfg.name,
                     TextWrapped = true,
@@ -4951,40 +4621,15 @@ local Library = (function()
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
                 }, { TextColor3 = cfg.dark and 'Light Text' or 'Text' })
-                Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
-                    Parent = Objects.Text,
-                    Padding = UDim.new(0, 2),
-                })
-                ZIndex = ZIndex + 1
-                Objects.SideHolder = Utility.New('Frame', {
-                    Name = 'SideHolder',
-                    Size = UDim2.new(0, 0, 1, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    Position = UDim2.fromOffset(0, 0),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    Parent = Objects.Text,
-                    ZIndex = ZIndex,
-                })
-                Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    HorizontalAlignment = Enum.HorizontalAlignment.Right,
-                    Parent = Objects.SideHolder,
-                    Padding = UDim.new(0, 2),
-                })
-                Label.SideHolder = Objects.SideHolder
                 ZIndex = ZIndex + 1
             end
             Label.ZIndex = ZIndex
             return setmetatable(Label, Library)
         end
-        
+
+        -- ============================================================
+        -- NOTIFICATION (MODIFIED: Centered positioning)
+        -- ============================================================
         function Library.Notification(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -5018,11 +4663,12 @@ local Library = (function()
                     BackgroundTransparency = 1,
                     Size = UDim2.new(0, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.XY,
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    Position = UDim2.new(0.5, 0, 0.6, 0),
                     ZIndex = ZIndex,
                     Parent = Library.ScreenGui,
                 })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Holder,
@@ -5034,15 +4680,10 @@ local Library = (function()
                     BorderSizePixel = 0,
                     Size = UDim2.new(0, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.XY,
-                    Position = UDim2.new(0, 0, 1, 0),
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Outline, CornerRadius = UDim.new(0, 5) })
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
                     Name = 'Background',
@@ -5053,20 +4694,14 @@ local Library = (function()
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 5),
                     PaddingBottom = UDim.new(0, 6),
                     Parent = Objects.Background,
                 })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Background,
-                    CornerRadius = UDim.new(0, 5),
-                })
+                Utility.New('UICorner', { Parent = Objects.Background, CornerRadius = UDim.new(0, 5) })
                 Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Parent = Objects.Background,
@@ -5080,7 +4715,6 @@ local Library = (function()
                     TextSize = Library.FontSize,
                     FontFace = Library.Font,
                     Size = UDim2.new(0, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.XY,
                     Text = cfg.name,
                     Parent = Objects.Background,
@@ -5088,24 +4722,15 @@ local Library = (function()
                 }, { TextColor3 = 'Text' })
                 ZIndex = ZIndex + 1
                 if cfg.buttons then
-                    Objects.FadeHolder = Utility.New('Frame', {
-                        Name = 'ButtonHolder',
-                        BorderSizePixel = 0,
-                        BackgroundTransparency = 1,
-                        Size = UDim2.new(0, 0, 0, 0),
-                        AutomaticSize = Enum.AutomaticSize.XY,
-                        Parent = Objects.Holder,
-                    })
                     Objects.ButtonHolder = Utility.New('Frame', {
                         Name = 'ButtonHolder',
                         BorderSizePixel = 0,
                         BackgroundTransparency = 1,
                         Size = UDim2.new(0, 0, 0, 0),
                         AutomaticSize = Enum.AutomaticSize.XY,
-                        Parent = Objects.FadeHolder,
+                        Parent = Objects.Background,
                     })
                     Utility.New('UIListLayout', {
-                        Name = 'UIListLayout',
                         FillDirection = Enum.FillDirection.Horizontal,
                         SortOrder = Enum.SortOrder.LayoutOrder,
                         Parent = Objects.ButtonHolder,
@@ -5139,53 +4764,408 @@ local Library = (function()
                         Parent = Objects.Background,
                         ZIndex = ZIndex,
                     }, { BackgroundColor3 = 'Accent' })
-                    Objects.Time.Size = UDim2.new(0, 0, 0, 2)
                 end
             end
 
-            function Notification.SetTime(time)
-                Notification.Time = time
-                Notification.Clock = os.clock()
-            end
-            function Notification.Hide()
-                Notification.Time = 0
-            end
-            function Notification.Title(text)
-                Objects.Title.Text = text
-            end
-            function Notification.Description(text)
-                Objects.Description.Text = text
-            end
-            function Notification.ButtonVisiblity(visibility)
-                Notification.ShowButtons = visibility
-            end
-            function Notification.CreateButton(bcfg)
-                bcfg = bcfg or {}
-                bcfg = Library.Config(bcfg, {
-                    text = 'undefined',
-                    callback = function() end,
-                })
-                local Button = Library.Button({
-                    ZIndex = ZIndex,
-                    Holder = Objects.ButtonHolder,
-                }, {
-                    AutoSize = true,
-                    Name = bcfg.text,
-                    Callback = bcfg.callback,
-                })
-                table.insert(Notification.Buttons, Button)
-                return Button
-            end
-
-            if cfg.buttons then
-                for _, button in cfg.buttons do
-                    Notification.CreateButton(button)
-                end
-            end
             table.insert(Library.Notifications, Notification)
             return Notification
         end
-        
+
+        -- ============================================================
+        -- NEW NOTIFICATION (accent-bar style matching the screenshot)
+        -- ============================================================
+        function Library.NewNotification(cfg)
+            cfg = cfg or {}
+            cfg = Library.Config(cfg, {
+                name = 'Notification',
+                description = '',
+                duration = 4,
+                accent = nil,
+            })
+
+            local ScreenGui = Utility.New('ScreenGui', {
+                Name = 'NewNotifGui',
+                DisplayOrder = 100,
+                Parent = HiddenUI,
+            })
+
+            local Holder = Utility.New('Frame', {
+                Name = 'Notification',
+                Size = UDim2.new(0, 420, 0, 28),
+                Position = UDim2.new(1, 440, 0, 50),
+                BackgroundTransparency = 1,
+                Parent = ScreenGui,
+            })
+
+            local accentColor = cfg.accent or Library.Theme.Accent
+
+            local TitleBox = Utility.New('Frame', {
+                Name = 'TitleBox',
+                Size = UDim2.new(0, 0, 1, 0),
+                BackgroundColor3 = Library.Theme.Background,
+                BackgroundTransparency = 0.1,
+                BorderSizePixel = 0,
+                Parent = Holder,
+            })
+            Utility.New('UICorner', { CornerRadius = UDim.new(0, 4), Parent = TitleBox })
+            Utility.New('UIStroke', {
+                Color = Library.Theme.Outline,
+                Thickness = 1,
+                Transparency = 0.5,
+                Parent = TitleBox,
+            })
+
+            local AccentBar = Utility.New('Frame', {
+                Name = 'AccentBar',
+                Size = UDim2.new(0, 3, 1, -6),
+                Position = UDim2.new(0, 3, 0, 3),
+                BackgroundColor3 = accentColor,
+                BorderSizePixel = 0,
+                Parent = TitleBox,
+            })
+            Utility.New('UICorner', { CornerRadius = UDim.new(1, 0), Parent = AccentBar })
+
+            local TitleLabel = Utility.New('TextLabel', {
+                Name = 'Title',
+                Size = UDim2.new(1, -16, 1, 0),
+                Position = UDim2.new(0, 12, 0, 0),
+                BackgroundTransparency = 1,
+                Text = cfg.name,
+                TextColor3 = accentColor,
+                TextSize = 13,
+                FontFace = Library.Font,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = TitleBox,
+            })
+
+            local DescBox = Utility.New('Frame', {
+                Name = 'DescBox',
+                Size = UDim2.new(0, 280, 1, 0),
+                Position = UDim2.new(0, 145, 0, 0),
+                BackgroundColor3 = Library.Theme.Background,
+                BackgroundTransparency = 0.1,
+                BorderSizePixel = 0,
+                Parent = Holder,
+            })
+            Utility.New('UICorner', { CornerRadius = UDim.new(0, 4), Parent = DescBox })
+            Utility.New('UIStroke', {
+                Color = Library.Theme.Outline,
+                Thickness = 1,
+                Transparency = 0.5,
+                Parent = DescBox,
+            })
+
+            local DescLabel = Utility.New('TextLabel', {
+                Name = 'Description',
+                Size = UDim2.new(1, -16, 1, 0),
+                Position = UDim2.new(0, 8, 0, 0),
+                BackgroundTransparency = 1,
+                Text = cfg.description,
+                TextColor3 = Library.Theme.Text,
+                TextSize = 13,
+                FontFace = Library.Font,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = DescBox,
+            })
+
+            task.defer(function()
+                local titleWidth = TitleLabel.TextBounds.X + 24
+                TitleBox.Size = UDim2.new(0, titleWidth, 1, 0)
+                DescBox.Position = UDim2.new(0, titleWidth + 5, 0, 0)
+                DescBox.Size = UDim2.new(0, math.max(200, DescLabel.TextBounds.X + 20), 1, 0)
+                local totalWidth = titleWidth + 5 + DescBox.AbsoluteSize.X
+                Holder.Size = UDim2.new(0, totalWidth, 0, 28)
+
+                Library.Tween(Holder, {
+                    Position = UDim2.new(1, -totalWidth - 20, 0, 50)
+                }, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+            end)
+
+            task.delay(cfg.duration, function()
+                local tween = Library.Tween(Holder, {
+                    Position = UDim2.new(1, 440, 0, 50)
+                }, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In))
+                Utility.Signal(tween.Completed:Connect(function()
+                    ScreenGui:Destroy()
+                end))
+            end)
+
+            return {
+                Holder = Holder,
+                ScreenGui = ScreenGui,
+                TitleBox = TitleBox,
+                DescBox = DescBox,
+                AccentBar = AccentBar,
+                TitleLabel = TitleLabel,
+                DescLabel = DescLabel,
+                SetTitle = function(text) TitleLabel.Text = text end,
+                SetDescription = function(text) DescLabel.Text = text end,
+                SetAccent = function(color)
+                    AccentBar.BackgroundColor3 = color
+                    TitleLabel.TextColor3 = color
+                end,
+            }
+        end
+
+        -- ============================================================
+        -- DAMAGE HIGHLIGHT (NEW - Floating damage text)
+        -- ============================================================
+        function Library.Highlight(text, position, color)
+            color = color or Color3.fromRGB(255, 255, 255)
+            local ScreenGui = Library.ScreenGui
+
+            local Label = Utility.New('TextLabel', {
+                Name = 'DamageHighlight',
+                Text = tostring(text),
+                TextColor3 = color,
+                TextSize = 20,
+                FontFace = Library.Font,
+                BackgroundTransparency = 1,
+                TextStrokeTransparency = 0.5,
+                TextStrokeColor3 = Color3.new(0, 0, 0),
+                Size = UDim2.new(0, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.XY,
+                Position = UDim2.new(0, position.X, 0, position.Y),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Parent = ScreenGui,
+                ZIndex = 9999,
+            })
+
+            local Tween = Library.Tween(Label, {
+                Position = UDim2.new(0, position.X, 0, position.Y - 50),
+                TextTransparency = 1,
+                TextStrokeTransparency = 1,
+            }, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+
+            Utility.Signal(Tween.Completed:Connect(function()
+                Label:Destroy()
+            end))
+        end
+
+        -- ============================================================
+        -- KEYBIND LIST (MODIFIED: Custom style + Only shows enabled)
+        -- ============================================================
+        Library.KeybindList = (function()
+            local ScreenGui = Utility.New('ScreenGui', {
+                Name = 'KeybindListGui',
+                DisplayOrder = 50,
+                Parent = HiddenUI,
+            })
+
+            local MainFrame = Utility.New('Frame', {
+                Name = 'KeybindList',
+                Size = UDim2.new(0, 220, 0, 30),
+                Position = UDim2.new(0, 10, 0.5, -100),
+                BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+                BackgroundTransparency = 0,
+                BorderSizePixel = 0,
+                Parent = ScreenGui,
+                AutomaticSize = Enum.AutomaticSize.Y,
+            })
+            Utility.New('UICorner', { CornerRadius = UDim.new(0, 4), Parent = MainFrame })
+            local Outline = Utility.New('UIStroke', {
+                Color = Color3.fromRGB(200, 50, 50),
+                Thickness = 1,
+                Transparency = 0.2,
+                Parent = MainFrame,
+            })
+
+            -- Header matching the image style
+            local Header = Utility.New('Frame', {
+                Name = 'Header',
+                Size = UDim2.new(1, 0, 0, 26),
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+                BackgroundTransparency = 0,
+                BorderSizePixel = 0,
+                Parent = MainFrame,
+            })
+            Utility.New('UICorner', { CornerRadius = UDim.new(0, 4), Parent = Header })
+            
+            local HeaderAccent = Utility.New('Frame', {
+                Name = 'HeaderAccent',
+                Size = UDim2.new(0, 4, 1, 0),
+                Position = UDim2.new(0, 0, 0, 0),
+                BackgroundColor3 = Color3.fromRGB(200, 50, 50),
+                BorderSizePixel = 0,
+                Parent = Header,
+            })
+            Utility.New('UICorner', { CornerRadius = UDim.new(0, 4), Parent = HeaderAccent })
+            
+            local HeaderText = Utility.New('TextLabel', {
+                Name = 'HeaderText',
+                Size = UDim2.new(1, -10, 1, 0),
+                Position = UDim2.new(0, 10, 0, 0),
+                BackgroundTransparency = 1,
+                Text = 'Binds',
+                TextColor3 = Color3.fromRGB(220, 220, 220),
+                TextSize = 14,
+                FontFace = Library.Font,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = Header,
+            })
+
+            local Content = Utility.New('Frame', {
+                Name = 'Content',
+                Size = UDim2.new(1, 0, 0, 0),
+                Position = UDim2.new(0, 0, 0, 28),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Parent = MainFrame,
+                AutomaticSize = Enum.AutomaticSize.Y,
+            })
+            Utility.New('UIListLayout', {
+                FillDirection = Enum.FillDirection.Vertical,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 2),
+                Parent = Content,
+            })
+            Utility.New('UIPadding', {
+                PaddingLeft = UDim.new(0, 6),
+                PaddingRight = UDim.new(0, 6),
+                PaddingTop = UDim.new(0, 4),
+                PaddingBottom = UDim.new(0, 6),
+                Parent = Content,
+            })
+
+            local List = {
+                Frame = MainFrame,
+                Content = Content,
+                Header = Header,
+                Outline = Outline,
+                Enabled = true,
+                Opacity = 1,
+                AccentColor = Color3.fromRGB(200, 50, 50),
+                Items = {},
+            }
+
+            function List:Update()
+                MainFrame.BackgroundTransparency = 1 - self.Opacity
+                Header.BackgroundTransparency = 1 - (self.Opacity * 0.9)
+                Outline.Transparency = 1 - (self.Opacity * 0.7)
+                
+                for _, item in pairs(self.Items) do
+                    if item.Frame then
+                        item.Frame.BackgroundTransparency = 1 - (self.Opacity * 0.5)
+                        item.NameLabel.TextColor3 = self.AccentColor
+                        item.ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                        item.NameLabel.TextTransparency = 1 - self.Opacity
+                        item.ValueLabel.TextTransparency = 1 - self.Opacity
+                    end
+                end
+            end
+
+            function List:SetEnabled(v)
+                self.Enabled = v
+                MainFrame.Visible = v
+            end
+
+            function List:SetOpacity(v)
+                self.Opacity = v
+                self:Update()
+            end
+
+            function List:SetAccent(color)
+                self.AccentColor = color
+                self:Update()
+            end
+
+            -- ADDING A BIND (Only adds if key exists and is not nil)
+            function List:AddBind(name, key, mode)
+                for i, item in ipairs(self.Items) do
+                    if item.Name == name then
+                        item.Frame:Destroy()
+                        table.remove(self.Items, i)
+                        break
+                    end
+                end
+
+                if not key or key == '' then return end
+
+                local ItemFrame = Utility.New('Frame', {
+                    Name = 'Bind_' .. name,
+                    Size = UDim2.new(1, 0, 0, 18),
+                    BackgroundTransparency = 0.5,
+                    BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0,
+                    Parent = Content,
+                })
+                Utility.New('UICorner', { CornerRadius = UDim.new(0, 3), Parent = ItemFrame })
+
+                local NameLabel = Utility.New('TextLabel', {
+                    Name = 'Name',
+                    Size = UDim2.new(0.6, 0, 1, 0),
+                    Position = UDim2.new(0, 6, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = name,
+                    TextColor3 = self.AccentColor,
+                    TextSize = 12,
+                    FontFace = Library.Font,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = ItemFrame,
+                })
+
+                local ValueLabel = Utility.New('TextLabel', {
+                    Name = 'Value',
+                    Size = UDim2.new(0.4, -6, 1, 0),
+                    Position = UDim2.new(1, -6, 0, 0),
+                    AnchorPoint = Vector2.new(1, 0),
+                    BackgroundTransparency = 1,
+                    Text = key,
+                    TextColor3 = Color3.fromRGB(200, 200, 200),
+                    TextSize = 11,
+                    FontFace = Library.Font,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    Parent = ItemFrame,
+                })
+
+                table.insert(self.Items, {
+                    Name = name,
+                    Key = key,
+                    Mode = mode,
+                    Frame = ItemFrame,
+                    NameLabel = NameLabel,
+                    ValueLabel = ValueLabel,
+                })
+                self:Update()
+            end
+
+            function List:RemoveBind(name)
+                for i, item in ipairs(self.Items) do
+                    if item.Name == name then
+                        item.Frame:Destroy()
+                        table.remove(self.Items, i)
+                        break
+                    end
+                end
+            end
+
+            -- Dragging
+            local dragging, dragStart, startPos
+            Utility.Signal(Header.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                    dragStart = input.Position
+                    startPos = MainFrame.AbsolutePosition
+                end
+            end))
+            Utility.Signal(UserInputService.InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local delta = input.Position - dragStart
+                    MainFrame.Position = UDim2.new(0, startPos.X + delta.X, 0, startPos.Y + delta.Y)
+                end
+            end))
+            Utility.Signal(UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end))
+
+            return List
+        end)()
+
+        -- ============================================================
+        -- WATERMARK
+        -- ============================================================
         function Library.Watermark(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -5206,9 +5186,18 @@ local Library = (function()
                 Clock = os.clock(),
                 Attached = cfg.attached,
                 Dragging = false,
-                DragStart = nil,
-                DragOrigin = nil,
                 Position = cfg.defaultPosition,
+                GradientEnabled = false,
+                GradientSpeed = 1,
+                GradientOffset = 0,
+                GradientColorMode = 'accent',
+                GradientColors = {
+                    Library.Theme.Accent,
+                    Color3.fromHex('7a9ba3'),
+                    Library.Theme.Accent,
+                },
+                GradientInstance = nil,
+                GradientConnection = nil,
             }
             local Objects = Watermark.Objects
 
@@ -5222,11 +5211,7 @@ local Library = (function()
                     Parent = Library.ScreenGui,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Inline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Outline,
-                })
+                Utility.New('UICorner', { CornerRadius = UDim.new(0, 5), Parent = Objects.Outline })
                 ZIndex = ZIndex + 1
                 Objects.Background = Utility.New('Frame', {
                     Name = 'Background',
@@ -5236,13 +5221,8 @@ local Library = (function()
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
                 }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    CornerRadius = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
+                Utility.New('UICorner', { CornerRadius = UDim.new(0, 5), Parent = Objects.Background })
                 Utility.New('UIPadding', {
-                    Name = 'UIPadding',
                     PaddingLeft = UDim.new(0, 5),
                     PaddingRight = UDim.new(0, 5),
                     PaddingTop = UDim.new(0, 5),
@@ -5259,7 +5239,6 @@ local Library = (function()
                     AutomaticSize = Enum.AutomaticSize.X,
                     FontFace = Library.Font,
                     Size = UDim2.new(0, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Text = Watermark.Text,
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
@@ -5268,7 +5247,6 @@ local Library = (function()
                     Name = 'DragHandle',
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, 0, 1, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
                     Text = '',
                     AutoButtonColor = false,
                     Style = Enum.ButtonStyle.Custom,
@@ -5283,11 +5261,7 @@ local Library = (function()
             function Watermark.SetRate(rate) Watermark.Rate = rate end
             function Watermark.SetAttached(attached)
                 Watermark.Attached = attached
-                if attached then
-                    Watermark.SnapToWindow()
-                else
-                    Objects.Outline.Position = Watermark.Position
-                end
+                if attached then Watermark.SnapToWindow() else Objects.Outline.Position = Watermark.Position end
             end
             function Watermark.IsAttached() return Watermark.Attached end
             function Watermark.SnapToWindow()
@@ -5299,6 +5273,81 @@ local Library = (function()
                 local x = winPos.X + (winSize.X - wmSize.X) / 2
                 local y = winPos.Y - wmSize.Y - 6
                 Objects.Outline.Position = UDim2.new(0, x, 0, y)
+            end
+
+            -- Animated gradient support
+            local function GetWMColors()
+                if Watermark.GradientColorMode == 'accent' then
+                    local accent = Library.Theme.Accent
+                    local h, s, v = accent:ToHSV()
+                    local lighter = Color3.fromHSV(h, math.max(0, s - 0.4), math.min(1, v + 0.2))
+                    local darker = Color3.fromHSV(h, math.min(1, s + 0.2), math.max(0, v - 0.3))
+                    return { accent, lighter, darker, lighter, accent }
+                else
+                    return Watermark.GradientColors
+                end
+            end
+
+            function Watermark.ApplyGradient()
+                local textObj = Objects.Text
+                if not textObj then return end
+                if Watermark.GradientEnabled then
+                    if not Watermark.GradientInstance then
+                        Watermark.GradientInstance = Utility.New('UIGradient', {
+                            Name = 'WatermarkAnimatedGradient',
+                            Parent = textObj,
+                        })
+                    end
+                    local colors = GetWMColors()
+                    local kps = {}
+                    for i, c in ipairs(colors) do
+                        table.insert(kps, ColorSequenceKeypoint.new((i - 1) / (#colors - 1), c))
+                    end
+                    Watermark.GradientInstance.Color = ColorSequence.new(kps)
+                    Watermark.GradientInstance.Rotation = Watermark.GradientOffset
+                    textObj.TextColor3 = Color3.new(1, 1, 1)
+                else
+                    if Watermark.GradientInstance then
+                        Watermark.GradientInstance:Destroy()
+                        Watermark.GradientInstance = nil
+                    end
+                    if Library.ThemeObjects[textObj] then
+                        Library.ThemeObjects[textObj].Props = { TextColor3 = 'Text' }
+                    end
+                    textObj.TextColor3 = Library.Theme.Text
+                end
+            end
+
+            function Watermark.SetGradientEnabled(enabled)
+                Watermark.GradientEnabled = enabled
+                Watermark.ApplyGradient()
+                if enabled and not Watermark.GradientConnection then
+                    Watermark.GradientConnection = RunService.RenderStepped:Connect(function(dt)
+                        if not Watermark.GradientEnabled or not Watermark.GradientInstance then return end
+                        Watermark.GradientOffset = (Watermark.GradientOffset + dt * Watermark.GradientSpeed * 60) % 360
+                        Watermark.GradientInstance.Rotation = Watermark.GradientOffset
+                    end)
+                    Utility.Signal(Watermark.GradientConnection)
+                elseif not enabled and Watermark.GradientConnection then
+                    Watermark.GradientConnection:Disconnect()
+                    Watermark.GradientConnection = nil
+                end
+            end
+
+            function Watermark.SetGradientSpeed(speed)
+                Watermark.GradientSpeed = speed
+            end
+
+            function Watermark.SetGradientColorMode(mode)
+                Watermark.GradientColorMode = mode
+                if Watermark.GradientEnabled then Watermark.ApplyGradient() end
+            end
+
+            function Watermark.SetGradientColors(colors)
+                Watermark.GradientColors = colors
+                if Watermark.GradientEnabled and Watermark.GradientColorMode == 'custom' then
+                    Watermark.ApplyGradient()
+                end
             end
 
             Utility.Signal(Objects.DragHandle.InputBegan:Connect(function(input)
@@ -5350,24 +5399,16 @@ local Library = (function()
 
             Utility.Signal(RunService.RenderStepped:Connect(Watermark.Think))
             if Watermark.Attached then
-                task.defer(function()
-                    Watermark.SnapToWindow()
-                end)
+                task.defer(function() Watermark.SnapToWindow() end)
             end
             return Watermark
         end
-        
+
         function Library.HandleNotifications(step)
             Library.Fps = math.floor(1 / step)
             local Clock = os.clock()
             local Watermark = Library.ScreenGui:FindFirstChild('Watermark')
             local Offset = Watermark and Watermark.Visible and Watermark.AbsoluteSize.Y + 5 or 0
-            
-            -- Calculate bottom center position
-            local ViewportSize = Camera.ViewportSize
-            local InventoryBarHeight = 36 -- Approximate height of Roblox inventory bar
-            local BottomOffset = ViewportSize.Y - InventoryBarHeight - 10
-            
             for _, notification in Library.Notifications do
                 local Objects = notification.Objects
                 local Time = notification.Time
@@ -5382,46 +5423,34 @@ local Library = (function()
                 local Background = Objects.Background
                 local Title = Objects.Title
                 
-                -- Position at bottom center
-                local HolderSize = Holder.AbsoluteSize
-                local PosX = (ViewportSize.X / 2) - (HolderSize.X / 2)
-                local PosY = BottomOffset - HolderSize.Y
+                -- MODIFIED POSITIONING: Centered on screen, stacking vertically
+                local screenHeight = Camera.ViewportSize.Y
+                local centerY = screenHeight * 0.6
+                Holder.Position = UDim2.new(0.5, 0, 0, centerY + Offset)
                 
-                -- Apply lerp for entrance/exit
-                local Alpha = Lerp / 255
-                Holder.Position = UDim2.new(0, PosX, 0, PosY + (1 - Alpha) * 20)
-                
-                Outline.BackgroundTransparency = 1 - Alpha
-                Background.BackgroundTransparency = 1 - Alpha
-                Title.TextTransparency = 1 - Alpha
-                
+                Outline.BackgroundTransparency = 1 - (Lerp / 255)
+                Background.BackgroundTransparency = 1 - (Lerp / 255)
+                Title.TextTransparency = 1 - (Lerp / 255)
                 if #notification.Buttons > 0 then
                     notification.ButtonLerp = Utility.Lerp(notification.ButtonLerp, notification.ShowButtons and 255 or 0, 0.1)
                     for _, obj in Objects.ButtonHolder:GetDescendants() do
                         local Index = Utility.GetTransparency(obj)
                         if type(Index) == 'table' then
-                            if obj:IsA('TextLabel') then
-                                obj[Index[1]] = 1 - (notification.ButtonLerp / 255)
-                            else
-                                obj[Index[1]] = 1 - (notification.ButtonLerp / 255)
-                                obj[Index[2]] = 1 - (notification.ButtonLerp / 255)
-                            end
+                            obj[Index[1]] = 1 - (notification.ButtonLerp / 255)
+                            if Index[2] then obj[Index[2]] = 1 - (notification.ButtonLerp / 255) end
                         else
                             obj[Index] = 1 - (notification.ButtonLerp / 255)
                         end
                     end
                 end
                 if Objects.Description then
-                    Objects.Description.TextTransparency = 1 - Alpha
+                    Objects.Description.TextTransparency = 1 - (Lerp / 255)
                 end
                 if Objects.Time then
-                    Objects.Time.BackgroundTransparency = 1 - Alpha
+                    Objects.Time.BackgroundTransparency = 1 - (Lerp / 255)
                     Objects.Time.Size = UDim2.new(0, (Outline.AbsoluteSize.X - 10) * math.clamp(((notification.Clock - Clock) / notification.Time) * -1, 0, 1), 0, 2)
                 end
-                
-                -- Adjust bottom offset for next notification
-                BottomOffset = BottomOffset - (HolderSize.Y + 5) * Alpha
-                
+                Offset = Offset + (Holder.AbsoluteSize.Y + 5) * (Lerp / 255)
                 if Lerp <= 0 then
                     Holder:Destroy()
                     table.remove(Library.Notifications, table.find(Library.Notifications, notification))
@@ -5442,21 +5471,15 @@ local Library = (function()
             end
             return encrypted
         end
-        local function xorDecrypt(data, password)
-            return xorEncrypt(data, password)
-        end
+        local function xorDecrypt(data, password) return xorEncrypt(data, password) end
         local function bytesToHex(data)
             local hex = ''
-            for i = 1, #data do
-                hex = hex .. string.format('%02x', string.byte(data, i))
-            end
+            for i = 1, #data do hex = hex .. string.format('%02x', string.byte(data, i)) end
             return hex
         end
         local function hexToBytes(hex)
             local data = ''
-            for i = 1, #hex, 2 do
-                data = data .. string.char(tonumber(hex:sub(i, i + 1), 16))
-            end
+            for i = 1, #hex, 2 do data = data .. string.char(tonumber(hex:sub(i, i + 1), 16)) end
             return data
         end
 
@@ -5465,16 +5488,9 @@ local Library = (function()
             for _, v in Library.ConfigFlags do
                 local Value = Library.Flags[_]
                 if type(Value) == 'table' and Value['key'] then
-                    Config[_] = {
-                        value = Value.value,
-                        mode = Value.mode,
-                        key = tostring(Value.key),
-                    }
+                    Config[_] = { value = Value.value, mode = Value.mode, key = tostring(Value.key) }
                 elseif type(Value) == 'table' and Value['a'] and Value['c'] then
-                    Config[_] = {
-                        a = Value.a,
-                        c = Value.c:ToHex(),
-                    }
+                    Config[_] = { a = Value.a, c = Value.c:ToHex() }
                 else
                     Config[_] = Value
                 end
@@ -5483,7 +5499,7 @@ local Library = (function()
             local encrypted = xorEncrypt(jsonData, XOR_PASSWORD)
             return bytesToHex(encrypted)
         end
-        
+
         function Library.LoadConfig(data)
             data = hexToBytes(data)
             data = xorDecrypt(data, XOR_PASSWORD)
@@ -5492,28 +5508,19 @@ local Library = (function()
                 local Config = Library.ConfigFlags[i]
                 if Config then
                     if type(v) == 'table' and v['a'] and v['c'] then
-                        Config({
-                            a = v.a,
-                            c = type(v.c) == 'string' and Color3.fromHex(v.c) or v.c,
-                        })
+                        Config({ a = v.a, c = type(v.c) == 'string' and Color3.fromHex(v.c) or v.c })
                     elseif type(v) == 'table' and v['key'] then
-                        Config({
-                            value = v.value,
-                            mode = v.mode,
-                            key = Utility.StringToEnum(v.key),
-                        }, true)
+                        Config({ value = v.value, mode = v.mode, key = Utility.StringToEnum(v.key) }, true)
                     else
                         Config(v)
                     end
                 end
                 if Library.LoadConfigCallbacks[i] then
-                    pcall(function()
-                        Library.LoadConfigCallbacks[i](v)
-                    end)
+                    pcall(function() Library.LoadConfigCallbacks[i](v) end)
                 end
             end
         end
-        
+
         function Library.CreateConfigManager(tab, options)
             if not tab or type(tab) ~= 'table' then return nil end
             options = options or {}
@@ -5521,20 +5528,10 @@ local Library = (function()
             local sectionName = options.name or 'Config Manager'
             local sectionDesc = options.description or 'Save and load your configurations'
             local folderPath = options.folderPath or (Folder .. '/Games/' .. (Game and Game.Name or 'Universal') .. '/Configs')
-            local ZIndex = (tab.ZIndex or 0) + 1
-            if not isfolder(folderPath) then
-                makefolder(folderPath)
-            end
-            local ConfigSection = tab:Section({
-                name = sectionName,
-                description = sectionDesc,
-                side = side,
-            })
-            local configNameTextbox = ConfigSection:Textbox({
-                name = 'Config Name',
-                placeholder = 'Enter config name...',
-                flag = 'ui_config_name',
-            })
+            if not isfolder(folderPath) then makefolder(folderPath) end
+            local ConfigSection = tab:Section({ name = sectionName, description = sectionDesc, side = side })
+            ConfigSection:Textbox({ name = 'Config Name', placeholder = 'Enter config name...', flag = 'ui_config_name' })
+
             local function GetConfigList()
                 local configs = {}
                 if isfolder(folderPath) then
@@ -5548,335 +5545,78 @@ local Library = (function()
                 if #configs == 0 then return { 'No configs found' } end
                 return configs
             end
+
             local configListDropdown = ConfigSection:Dropdown({
                 name = 'Saved Configs',
                 description = 'Select a saved configuration',
                 values = GetConfigList(),
                 callback = function(value)
-                    if value ~= 'No configs found' then
-                        Library.Flags['ui_config_name'] = value
-                    end
+                    if value ~= 'No configs found' then Library.Flags['ui_config_name'] = value end
                 end,
                 flag = 'ui_selected_config',
             })
+
             local function RefreshConfigList()
                 if configListDropdown and type(configListDropdown) == 'table' then
                     local configs = GetConfigList()
-                    if configListDropdown.Refresh and type(configListDropdown.Refresh) == 'function' then
-                        configListDropdown:Refresh(configs)
-                    end
-                    if #configs > 0 and configs[1] ~= 'No configs found' then
-                        Library.Flags['ui_selected_config'] = configs[1]
-                    else
-                        Library.Flags['ui_selected_config'] = 'No configs found'
-                    end
-                    pcall(function()
-                        if Library.Flags['ui_selected_config'] and configListDropdown.Update then
-                            configListDropdown:Update(Library.Flags['ui_selected_config'])
-                        end
-                    end)
+                    if configListDropdown.Refresh then configListDropdown:Refresh(configs) end
+                    Library.Flags['ui_selected_config'] = (#configs > 0 and configs[1] ~= 'No configs found') and configs[1] or 'No configs found'
                 end
             end
-            ConfigSection:Button({
-                name = 'Save Config',
-                description = 'Save current settings to a config file',
-                callback = function()
-                    local configName = Library.Flags['ui_config_name']
-                    if not configName or configName == '' or configName == 'No configs found' then
-                        configName = 'default'
-                    end
-                    local configPath = folderPath .. '/' .. configName .. '.json'
-                    local configData = Library.GetConfig()
-                    writefile(configPath, configData)
-                    Library.Notification({
-                        name = 'Config Saved',
-                        description = "Configuration '" .. configName .. "' has been saved.",
-                    })
-                    RefreshConfigList()
-                end,
-            })
-            ConfigSection:Button({
-                name = 'Load Config',
-                description = 'Load selected configuration',
-                callback = function()
-                    local configName = Library.Flags['ui_selected_config']
-                    if not configName or configName == 'No configs found' then
-                        Library.Notification({ name = 'Error', description = 'No config selected' })
-                        return
-                    end
-                    local configPath = folderPath .. '/' .. configName .. '.json'
-                    if isfile(configPath) then
-                        local data = readfile(configPath)
-                        Library.LoadConfig(data)
-                        Library.Notification({
-                            name = 'Config Loaded',
-                            description = "Configuration '" .. configName .. "' has been loaded.",
-                        })
-                    else
-                        Library.Notification({ name = 'Error', description = 'Config file not found' })
-                    end
-                end,
-            })
-            ConfigSection:Button({
-                name = 'Delete Config',
-                description = 'Delete selected configuration',
-                callback = function()
-                    local configName = Library.Flags['ui_selected_config']
-                    if not configName or configName == 'No configs found' then
-                        Library.Notification({ name = 'Error', description = 'No config selected' })
-                        return
-                    end
-                    local configPath = folderPath .. '/' .. configName .. '.json'
-                    if isfile(configPath) then
-                        delfile(configPath)
-                        Library.Notification({
-                            name = 'Config Deleted',
-                            description = "Configuration '" .. configName .. "' has been deleted.",
-                        })
-                        RefreshConfigList()
-                    else
-                        Library.Notification({ name = 'Error', description = 'Config file not found' })
-                    end
-                end,
-            })
-            ConfigSection:Button({
-                name = 'Refresh List',
-                description = 'Refresh the config list',
-                callback = function()
-                    RefreshConfigList()
-                    Library.Notification({
-                        name = 'List Refreshed',
-                        description = 'Config list has been updated.',
-                    })
-                end,
-            })
-            return {
-                Section = ConfigSection,
-                RefreshList = RefreshConfigList,
-            }
-        end
-        
-        function Library.KeybindList(self, cfg)
-            cfg = cfg or {}
-            cfg = Library.Config(cfg, {
-                name = 'Keybinds',
-                visible = true,
-                position = UDim2.new(0, 10, 0, 300),
-                size = UDim2.new(0, 180, 0, 30),
-                icon = 'rbxassetid://10734950309', -- Keyboard icon
-            })
 
-            local KeybindList = {
-                Objects = {},
-                Visible = cfg.visible,
-                ZIndex = 100,
-                Items = {},
-                Minimized = false,
-                Dragging = false,
-                DragStart = nil,
-                DragOrigin = nil,
-            }
-            local ZIndex = KeybindList.ZIndex
-            local Objects = KeybindList.Objects
+            ConfigSection:Button({ name = 'Save Config', description = 'Save current settings to a config file', callback = function()
+                local configName = Library.Flags['ui_config_name']
+                if not configName or configName == '' or configName == 'No configs found' then configName = 'default' end
+                local configPath = folderPath .. '/' .. configName .. '.json'
+                writefile(configPath, Library.GetConfig())
+                Library.Notification({ name = 'Config Saved', description = "Configuration '" .. configName .. "' has been saved." })
+                RefreshConfigList()
+            end })
 
-            do
-                Objects.Outline = Utility.New('Frame', {
-                    Name = 'KeybindList',
-                    BorderSizePixel = 0,
-                    Size = cfg.size,
-                    Position = cfg.position,
-                    Parent = Library.ScreenGui,
-                    ZIndex = ZIndex,
-                    ClipsDescendants = true,
-                }, { BackgroundColor3 = 'Outline' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Outline,
-                    CornerRadius = UDim.new(0, 5),
-                })
-                ZIndex = ZIndex + 1
-                Objects.Background = Utility.New('Frame', {
-                    Name = 'Background',
-                    BorderSizePixel = 0,
-                    Size = UDim2.new(1, -2, 1, -2),
-                    Position = UDim2.new(0, 1, 0, 1),
-                    Parent = Objects.Outline,
-                    ZIndex = ZIndex,
-                }, { BackgroundColor3 = 'Background' })
-                Utility.New('UICorner', {
-                    Name = 'UICorner',
-                    Parent = Objects.Background,
-                    CornerRadius = UDim.new(0, 5),
-                })
-                Utility.New('UIPadding', {
-                    Name = 'UIPadding',
-                    PaddingLeft = UDim.new(0, 5),
-                    PaddingRight = UDim.new(0, 5),
-                    PaddingTop = UDim.new(0, 5),
-                    PaddingBottom = UDim.new(0, 5),
-                    Parent = Objects.Background,
-                })
-                ZIndex = ZIndex + 1
-                
-                -- Header with Icon
-                Objects.Header = Utility.New('TextButton', {
-                    Name = 'Header',
-                    Size = UDim2.new(1, 0, 0, 20),
-                    Position = UDim2.new(0, 0, 0, 0),
-                    BackgroundTransparency = 1,
-                    Text = '',
-                    TextSize = Library.FontSize,
-                    FontFace = Library.Font,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
-                    Parent = Objects.Background,
-                    ZIndex = ZIndex,
-                }, { TextColor3 = 'Text' })
-                
-                Objects.HeaderIcon = Utility.New('ImageLabel', {
-                    Name = 'HeaderIcon',
-                    Size = UDim2.new(0, 16, 0, 16),
-                    Position = UDim2.new(0, 0, 0.5, -8),
-                    BackgroundTransparency = 1,
-                    Image = cfg.icon,
-                    Parent = Objects.Header,
-                    ZIndex = ZIndex,
-                }, { ImageColor3 = 'Text' })
-                
-                Objects.HeaderText = Utility.New('TextLabel', {
-                    Name = 'HeaderText',
-                    Size = UDim2.new(1, -25, 1, 0),
-                    Position = UDim2.new(0, 22, 0, 0),
-                    BackgroundTransparency = 1,
-                    Text = cfg.name,
-                    TextSize = Library.FontSize,
-                    FontFace = Library.Font,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = Objects.Header,
-                    ZIndex = ZIndex,
-                }, { TextColor3 = 'Text' })
-                
-                ZIndex = ZIndex + 1
-                Objects.Content = Utility.New('Frame', {
-                    Name = 'Content',
-                    Size = UDim2.new(1, 0, 0, 0),
-                    Position = UDim2.new(0, 0, 0, 25),
-                    BackgroundTransparency = 1,
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    Parent = Objects.Background,
-                    ZIndex = ZIndex,
-                })
-                Utility.New('UIListLayout', {
-                    Name = 'UIListLayout',
-                    FillDirection = Enum.FillDirection.Vertical,
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    Parent = Objects.Content,
-                    Padding = UDim.new(0, 2),
-                })
-            end
-
-            KeybindList.ZIndex = ZIndex
-
-            function KeybindList.Add(item)
-                local Item = {
-                    Objects = {},
-                    Name = item.Name or 'Unknown',
-                    Key = item.Key or 'None',
-                    Mode = item.Mode or 'Toggle',
-                }
-                local Objs = Item.Objects
-                Objs.Holder = Utility.New('Frame', {
-                    Name = 'Item',
-                    Size = UDim2.new(1, 0, 0, 16),
-                    BackgroundTransparency = 1,
-                    Parent = Objects.Content,
-                    ZIndex = ZIndex,
-                })
-                Objs.Name = Utility.New('TextLabel', {
-                    Name = 'Name',
-                    Size = UDim2.new(0.6, 0, 1, 0),
-                    Position = UDim2.new(0, 0, 0, 0),
-                    BackgroundTransparency = 1,
-                    Text = Item.Name,
-                    TextSize = Library.FontSize - 2,
-                    FontFace = Library.Font,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = Objs.Holder,
-                    ZIndex = ZIndex,
-                }, { TextColor3 = 'Text' })
-                Objs.Key = Utility.New('TextLabel', {
-                    Name = 'Key',
-                    Size = UDim2.new(0.4, 0, 1, 0),
-                    Position = UDim2.new(0.6, 0, 0, 0),
-                    BackgroundTransparency = 1,
-                    Text = Item.Key,
-                    TextSize = Library.FontSize - 2,
-                    FontFace = Library.Font,
-                    TextXAlignment = Enum.TextXAlignment.Right,
-                    Parent = Objs.Holder,
-                    ZIndex = ZIndex,
-                }, { TextColor3 = 'Accent' })
-                table.insert(KeybindList.Items, Item)
-                return Item
-            end
-
-            function KeybindList.SetVisible(visibility)
-                KeybindList.Visible = visibility
-                Objects.Outline.Visible = visibility
-            end
-
-            function KeybindList.ToggleMinimize()
-                KeybindList.Minimized = not KeybindList.Minimized
-                if KeybindList.Minimized then
-                    Objects.Outline.Size = UDim2.new(cfg.size.X.Scale, cfg.size.X.Offset, 0, 30)
+            ConfigSection:Button({ name = 'Load Config', description = 'Load selected configuration', callback = function()
+                local configName = Library.Flags['ui_selected_config']
+                if not configName or configName == 'No configs found' then
+                    Library.Notification({ name = 'Error', description = 'No config selected' }); return
+                end
+                local configPath = folderPath .. '/' .. configName .. '.json'
+                if isfile(configPath) then
+                    Library.LoadConfig(readfile(configPath))
+                    Library.Notification({ name = 'Config Loaded', description = "Configuration '" .. configName .. "' has been loaded." })
                 else
-                    Objects.Outline.Size = cfg.size
+                    Library.Notification({ name = 'Error', description = 'Config file not found' })
                 end
-            end
-            
-            -- Drag functionality
-            Utility.Signal(Objects.Header.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    KeybindList.Dragging = true
-                    KeybindList.DragStart = input.Position
-                    KeybindList.DragOrigin = Objects.Outline.AbsolutePosition
-                end
-            end))
-            Utility.Signal(UserInputService.InputChanged:Connect(function(input)
-                if KeybindList.Dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                    local delta = input.Position - KeybindList.DragStart
-                    Objects.Outline.Position = UDim2.new(0, KeybindList.DragOrigin.X + delta.X, 0, KeybindList.DragOrigin.Y + delta.Y)
-                end
-            end))
-            Utility.Signal(UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    KeybindList.Dragging = false
-                end
-            end))
+            end })
 
-            Utility.Signal(Objects.Header.MouseButton1Click:Connect(KeybindList.ToggleMinimize))
-            
-            if not KeybindList.Visible then
-                Objects.Outline.Visible = false
-            end
+            ConfigSection:Button({ name = 'Delete Config', description = 'Delete selected configuration', callback = function()
+                local configName = Library.Flags['ui_selected_config']
+                if not configName or configName == 'No configs found' then
+                    Library.Notification({ name = 'Error', description = 'No config selected' }); return
+                end
+                local configPath = folderPath .. '/' .. configName .. '.json'
+                if isfile(configPath) then
+                    delfile(configPath)
+                    Library.Notification({ name = 'Config Deleted', description = "Configuration '" .. configName .. "' has been deleted." })
+                    RefreshConfigList()
+                else
+                    Library.Notification({ name = 'Error', description = 'Config file not found' })
+                end
+            end })
 
-            Library.KeybindList = KeybindList
-            return setmetatable(KeybindList, Library)
+            ConfigSection:Button({ name = 'Refresh List', description = 'Refresh the config list', callback = function()
+                RefreshConfigList()
+                Library.Notification({ name = 'List Refreshed', description = 'Config list has been updated.' })
+            end })
+
+            return { Section = ConfigSection, RefreshList = RefreshConfigList }
         end
 
         function Library.Unload()
-            for _, obj in Utility.Connections do
-                obj:Disconnect()
-            end
-            for _, obj in Utility.Objects do
-                obj:Destroy()
-            end
+            for _, obj in Utility.Connections do obj:Disconnect() end
+            for _, obj in Utility.Objects do obj:Destroy() end
             getgenv().Library = nil
         end
 
-        Bin:add(function()
-            Library.Unload()
-        end)
+        Bin:add(function() Library.Unload() end)
     end
 
     getgenv().Library = Library
