@@ -1,6 +1,6 @@
 --
 local LoadingTick = os.clock()
-local Library = loadstring(game:HttpGet(""))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/thugsense/library.lua"))()
 
 local Window = Library:Window({
     Name = "wahwahwah",
