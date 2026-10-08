@@ -659,6 +659,7 @@ local Library = (function()
         Notifications = {},
         Window = nil,
         KeybindList = nil,
+        Keybinds = {}, -- Global registry for keybinds
     }
 
     Library.__index = Library
@@ -4900,6 +4901,7 @@ local Library = (function()
             end))
             Keybind.Set({ cfg.key, cfg.mode, cfg.value }, true)
             Library.ConfigFlags[string.format('%s_data', cfg.flag)] = Keybind.Set
+            table.insert(Library.Keybinds, Keybind) -- Register keybind globally
             return setmetatable(Keybind, Library)
         end
         
@@ -5661,6 +5663,7 @@ local Library = (function()
                 visible = true,
                 position = UDim2.new(0, 10, 0, 300),
                 size = UDim2.new(0, 180, 0, 30),
+                icon = Images.Get('gear') or 'rbxassetid://10734950309', -- Default to gear if available
             })
 
             local KeybindList = {
@@ -5669,6 +5672,9 @@ local Library = (function()
                 ZIndex = 100,
                 Items = {},
                 Minimized = false,
+                Dragging = false,
+                DragStart = nil,
+                DragOrigin = nil,
             }
             local ZIndex = KeybindList.ZIndex
             local Objects = KeybindList.Objects
@@ -5682,7 +5688,7 @@ local Library = (function()
                     Parent = Library.ScreenGui,
                     ZIndex = ZIndex,
                     ClipsDescendants = true,
-                }, { BackgroundColor3 = 'Inline' })
+                }, { BackgroundColor3 = 'Outline' })
                 Utility.New('UICorner', {
                     Name = 'UICorner',
                     Parent = Objects.Outline,
@@ -5711,12 +5717,14 @@ local Library = (function()
                     Parent = Objects.Background,
                 })
                 ZIndex = ZIndex + 1
+                
+                -- Header with Icon
                 Objects.Header = Utility.New('TextButton', {
                     Name = 'Header',
                     Size = UDim2.new(1, 0, 0, 20),
                     Position = UDim2.new(0, 0, 0, 0),
                     BackgroundTransparency = 1,
-                    Text = cfg.name,
+                    Text = '',
                     TextSize = Library.FontSize,
                     FontFace = Library.Font,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -5724,6 +5732,30 @@ local Library = (function()
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Text' })
+                
+                Objects.HeaderIcon = Utility.New('ImageLabel', {
+                    Name = 'HeaderIcon',
+                    Size = UDim2.new(0, 16, 0, 16),
+                    Position = UDim2.new(0, 0, 0.5, -8),
+                    BackgroundTransparency = 1,
+                    Image = cfg.icon,
+                    Parent = Objects.Header,
+                    ZIndex = ZIndex,
+                }, { ImageColor3 = 'Text' })
+                
+                Objects.HeaderText = Utility.New('TextLabel', {
+                    Name = 'HeaderText',
+                    Size = UDim2.new(1, -25, 1, 0),
+                    Position = UDim2.new(0, 22, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = cfg.name,
+                    TextSize = Library.FontSize,
+                    FontFace = Library.Font,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = Objects.Header,
+                    ZIndex = ZIndex,
+                }, { TextColor3 = 'Text' })
+                
                 ZIndex = ZIndex + 1
                 Objects.Content = Utility.New('Frame', {
                     Name = 'Content',
@@ -5801,6 +5833,26 @@ local Library = (function()
                     Objects.Outline.Size = cfg.size
                 end
             end
+            
+            -- Drag functionality
+            Utility.Signal(Objects.Header.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    KeybindList.Dragging = true
+                    KeybindList.DragStart = input.Position
+                    KeybindList.DragOrigin = Objects.Outline.AbsolutePosition
+                end
+            end))
+            Utility.Signal(UserInputService.InputChanged:Connect(function(input)
+                if KeybindList.Dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local delta = input.Position - KeybindList.DragStart
+                    Objects.Outline.Position = UDim2.new(0, KeybindList.DragOrigin.X + delta.X, 0, KeybindList.DragOrigin.Y + delta.Y)
+                end
+            end))
+            Utility.Signal(UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    KeybindList.Dragging = false
+                end
+            end))
 
             Utility.Signal(Objects.Header.MouseButton1Click:Connect(KeybindList.ToggleMinimize))
             
