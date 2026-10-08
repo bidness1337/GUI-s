@@ -659,7 +659,7 @@ local Library = (function()
         Notifications = {},
         Window = nil,
         KeybindList = nil,
-        Keybinds = {}, -- Global registry for keybinds
+        Keybinds = {},
     }
 
     Library.__index = Library
