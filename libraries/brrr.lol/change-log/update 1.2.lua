@@ -5663,7 +5663,7 @@ local Library = (function()
                 visible = true,
                 position = UDim2.new(0, 10, 0, 300),
                 size = UDim2.new(0, 180, 0, 30),
-                icon = Images.Get('gear') or 'rbxassetid://10734950309', -- Default to gear if available
+                icon = 'rbxassetid://10734950309', -- Keyboard icon
             })
 
             local KeybindList = {
