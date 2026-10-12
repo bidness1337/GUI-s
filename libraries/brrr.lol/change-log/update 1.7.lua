@@ -2686,7 +2686,6 @@ local Library = (function()
                 })
 
                 ZIndex = ZIndex + 1
-                -- Row: height driven by text bounds (set in task.defer at end)
                 Objects.Line = Utility.New('TextButton', {
                     Name = 'Line',
                     Size = UDim2.new(1, 0, 0, 20),
@@ -2709,7 +2708,6 @@ local Library = (function()
                     Padding = UDim.new(0, 4),
                 })
 
-                -- Checkbox
                 Objects.Outline = Utility.New('Frame', {
                     Name = 'Outline',
                     Size = UDim2.new(0, 20, 0, 20),
@@ -2758,7 +2756,6 @@ local Library = (function()
                 })
                 ZIndex = ZIndex + 1
 
-                -- Text
                 Objects.Text = Utility.New('TextLabel', {
                     Name = 'Text',
                     TextStrokeTransparency = 0.8,
@@ -2853,7 +2850,6 @@ local Library = (function()
                     ZIndex = ZIndex + 1
                 end
 
-                -- Force checkbox + row to match the text's rendered height
                 task.defer(function()
                     local textHeight = math.max(math.floor(Objects.Text.TextBounds.Y), Library.FontSize)
                     Objects.Line.Size = UDim2.new(1, 0, 0, textHeight)
@@ -5021,6 +5017,7 @@ local Library = (function()
                     Position = UDim2.new(0, 0, 1, 0),
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
+                    BackgroundTransparency = 0.1,
                 }, { BackgroundColor3 = 'Inline' })
                 Utility.New('UICorner', {
                     Name = 'UICorner',
@@ -5035,6 +5032,7 @@ local Library = (function()
                     Position = UDim2.fromOffset(1, 1),
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
+                    BackgroundTransparency = 0.1,
                 }, { BackgroundColor3 = 'Background' })
                 Utility.New('UIPadding', {
                     Name = 'UIPadding',
@@ -5400,7 +5398,6 @@ local Library = (function()
                 Padding = UDim.new(0, 4),
             })
 
-            -- Header box. No extra full-size children so icon + "Binds" stay left-aligned.
             Objects.HeaderContainer = Utility.New('Frame', {
                 Name = 'HeaderContainer',
                 Size = UDim2.new(0, 0, 0, 24),
@@ -5692,7 +5689,14 @@ local Library = (function()
             Library.Fps = math.floor(1 / step)
             local Clock = os.clock()
             local Watermark = Library.ScreenGui:FindFirstChild('Watermark')
-            local Offset = Watermark and Watermark.Visible and Watermark.AbsoluteSize.Y + 5 or 0
+
+            -- Vertical starting position: 100px down from top (or below watermark if visible)
+            local BaseOffset = (Watermark and Watermark.Visible and Watermark.AbsoluteSize.Y + 5 or 0) + 100
+            local Offset = BaseOffset
+
+            -- Maximum opacity: 0.9 means 90% opaque (10% transparent)
+            local MinTransparency = 0.1
+
             for _, notification in Library.Notifications do
                 local Objects = notification.Objects
                 local Time = notification.Time
@@ -5706,31 +5710,38 @@ local Library = (function()
                 local Outline = Objects.Outline
                 local Background = Objects.Background
                 local Title = Objects.Title
-                Holder.Position = UDim2.new(0, 10 + (-Holder.AbsoluteSize.X * (1 - (Lerp / 255))), 0, Offset)
-                Outline.BackgroundTransparency = 1 - (Lerp / 255)
-                Background.BackgroundTransparency = 1 - (Lerp / 255)
-                Title.TextTransparency = 1 - (Lerp / 255)
+
+                -- Centered horizontally, offset vertically
+                Holder.Position = UDim2.new(0.47, 0, 0.7, Offset)
+
+                -- Blend between fully transparent (1) and MinTransparency (0.1)
+                local alpha = (1 - MinTransparency) * (1 - (Lerp / 255)) + MinTransparency
+                Outline.BackgroundTransparency = alpha
+                Background.BackgroundTransparency = alpha
+                Title.TextTransparency = alpha
+
                 if #notification.Buttons > 0 then
                     notification.ButtonLerp = Utility.Lerp(notification.ButtonLerp, notification.ShowButtons and 255 or 0, 0.1)
                     for _, obj in Objects.ButtonHolder:GetDescendants() do
                         local Index = Utility.GetTransparency(obj)
+                        local btnAlpha = (1 - MinTransparency) * (1 - (notification.ButtonLerp / 255)) + MinTransparency
                         if type(Index) == 'table' then
                             if obj:IsA('TextLabel') then
-                                obj[Index[1]] = 1 - (notification.ButtonLerp / 255)
+                                obj[Index[1]] = btnAlpha
                             else
-                                obj[Index[1]] = 1 - (notification.ButtonLerp / 255)
-                                obj[Index[2]] = 1 - (notification.ButtonLerp / 255)
+                                obj[Index[1]] = btnAlpha
+                                obj[Index[2]] = btnAlpha
                             end
                         else
-                            obj[Index] = 1 - (notification.ButtonLerp / 255)
+                            obj[Index] = btnAlpha
                         end
                     end
                 end
                 if Objects.Description then
-                    Objects.Description.TextTransparency = 1 - (Lerp / 255)
+                    Objects.Description.TextTransparency = alpha
                 end
                 if Objects.Time then
-                    Objects.Time.BackgroundTransparency = 1 - (Lerp / 255)
+                    Objects.Time.BackgroundTransparency = alpha
                     Objects.Time.Size = UDim2.new(0, (Outline.AbsoluteSize.X - 10) * math.clamp(((notification.Clock - Clock) / notification.Time) * -1, 0, 1), 0, 2)
                 end
                 Offset = Offset + (Holder.AbsoluteSize.Y + 5) * (Lerp / 255)
