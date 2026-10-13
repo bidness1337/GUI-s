@@ -1,15 +1,16 @@
 local LoadingTick = os.clock()
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%200.4.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%202.1.lua"))()
 
--- Main window
 local Window = Library:Window({
-    Name = "brrr.lol",
+    Name = "richard",
     Size = UDim2.new(0, 550, 0, 475),
     Open = true,
-    FontSize = 20
+    FontSize = 20,
+    showBottomBar = true,
+    version = SCRIPT_VERSION,
 })
 
--- Theme colors (global styling)
+
 Library.Theme.Accent                = Color3.fromHex('ddfbff')
 Library.Theme.Text                  = Color3.fromHex('ddfbff')
 Library.Theme['Dark Text']          = Color3.fromHex('565656')
@@ -21,8 +22,8 @@ Library.Theme['Inline']             = Color3.fromHex('131313')
 Library.Theme['Dark Background']    = Color3.fromHex('000000')
 Library.Theme.Outline               = Color3.fromHex('1a1a1a')
 Library.Theme['Title Color']        = Color3.fromHex('ddfbff')
+Library.Theme.Risk                  = Color3.fromHex('ff4d4d')
 
--- Configure gradients
 Library.Gradients.Title       = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0 }
 Library.Gradients.Scroll      = { Start = Color3.fromHex('030303'), End = Color3.fromHex('030303'), Enabled = true, Transparency = 0.6 }
 Library.Gradients.Dropdown    = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0.75 }
@@ -32,7 +33,7 @@ Library.Gradients.Placeholder = { Start = Color3.fromHex('676767'), End = Color3
 Library.Gradients.Watermark   = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0.3 }
 Library:UpdateGradients()
 
--- Tab icons
+
 local icons = {
     combat   = 'rbxassetid://111386589037485',
     misc     = 'rbxassetid://126028986879491',
@@ -40,362 +41,189 @@ local icons = {
     settings = 'rbxassetid://137300573942266',
 }
 
--- Tabs
 local CombatTab   = Window:Tab({ Name = "combat",   Icon = icons.combat   })
 local MiscTab     = Window:Tab({ Name = "misc",     Icon = icons.misc     })
 local VisualsTab  = Window:Tab({ Name = "visuals",  Icon = icons.visuals  })
 local SettingsTab = Window:Tab({ Name = "settings", Icon = icons.settings })
 
--- Watermark
 local Watermark = Library:Watermark({
-    Text = 'brrr.lol | {fps} FPS | {ping} ms',
+    Text = 'richard | {fps} FPS | {ping} ms',
     Visible = false,
     Rate = 0.2,
 })
 
--- ============================================================
--- COMBAT TAB
--- ============================================================
+local Binds = Library:BindsOverlay({
+    Name = 'Binds',
+    Icon = 'rbxassetid://81471583706380',
+    Position = UDim2.new(0, 20, 0.5, -100),
+    Visible = true,
+    Width = 200,
+})
 
--- Toggle example (checkbox on the LEFT) — auto-resizes to fit content
+local function setBindsVisible(v)
+    if not Binds then return end
+    if Binds.SetVisible then
+        Binds:SetVisible(v)
+    elseif Binds.SetVisibleState then
+        Binds:SetVisibleState(v)
+    else
+        Binds.Visible = v
+    end
+end
+
 do
-    local example_section = CombatTab:Section({
-        Name = "toggle example",
-        Side = 'left',
-        AutoResize = true,
-        MinHeight = 80,
-        MaxHeight = 300,
-    })
+    local s = CombatTab:Section({ Name = "combat binds", Side = 'left', AutoResize = true })
 
-    example_section:Toggle({
-        Name = 'my toggle',
-        Value = false,
-        Flag = 'my_toggle',
-        Callback = function(v)
-            print('toggle is now:', v)
-        end,
+    s:Keybind({
+        Name = 'Double Tap', DisplayName = 'Double Tap',
+        Key = Enum.KeyCode.X, Mode = 'Toggle', Flag = 'bind_double_tap',
+        Callback = function(v) print('Double Tap:', v) end,
+    })
+    s:Keybind({
+        Name = 'Hide Shots', DisplayName = 'Hide Shots',
+        Key = Enum.KeyCode.C, Mode = 'Toggle', Flag = 'bind_hide_shots',
+        Callback = function(v) print('Hide Shots:', v) end,
+    })
+    s:Keybind({
+        Name = 'Freestanding', DisplayName = 'Freestanding',
+        Key = Enum.KeyCode.V, Mode = 'Toggle', Flag = 'bind_freestanding',
+        Callback = function(v) print('Freestanding:', v) end,
+    })
+    s:Keybind({
+        Name = 'Force body aim', DisplayName = 'Force body aim',
+        Key = Enum.KeyCode.F, Mode = 'Toggle', Flag = 'bind_force_body_aim',
+        Callback = function(v) print('Force body aim:', v) end,
+    })
+    s:Keybind({
+        Name = 'Fake Duck', DisplayName = 'Fake Duck',
+        Key = Enum.KeyCode.G, Mode = 'Toggle', Flag = 'bind_fake_duck',
+        Callback = function(v) print('Fake Duck:', v) end,
     })
 end
 
--- Divider example
 do
-    local divider_section = CombatTab:Section({
-        Name = "divider example",
-        Side = 'left',
-        AutoResize = true,
+    local s = CombatTab:Section({ Name = "toggle example", Side = 'right', AutoResize = true })
+    s:Toggle({
+        Name = 'my toggle', Value = false, Flag = 'my_toggle',
+        Callback = function(v) print('toggle is now:', v) end,
     })
-
-    divider_section:Divider({ Text = "Combat Settings" })
-
-    divider_section:Toggle({
-        Name = 'divider toggle',
-        Value = false,
-        Flag = 'divider_toggle',
-    })
-
-    divider_section:Divider({ Text = "More Options" })
-
-    divider_section:Toggle({
-        Name = 'another toggle',
-        Value = true,
-        Flag = 'another_toggle',
+    s:Toggle({
+        Name = 'another toggle', Value = true, Flag = 'another_toggle',
     })
 end
 
--- Toggle with popup
 do
-    local popup_section = CombatTab:Section({
-        Name = "popup example",
-        Side = 'left',
-        AutoResize = true,
+    local s = CombatTab:Section({ Name = "risky stuff", Side = 'right', AutoResize = true })
+
+    s:Label({
+        Name = '⚠ WARNING: The options below are dangerous',
+        Risky = true, Bold = true,
     })
 
-    local main_toggle = popup_section:Toggle({
-        Name = 'toggle w/ popup',
-        Value = false,
-        Flag = 'toggle_with_popup',
+    s:Toggle({
+        Name = 'Delete All Parts', Value = false, Risky = true, Flag = 'risky_delete',
+        Callback = function(v) print('Delete parts:', v) end,
     })
 
-    local popup = main_toggle:Popup({ Size = 200 })
-
-    popup:Slider({
-        Name = 'some value',
-        Value = 50,
-        Min = 0,
-        Max = 100,
-        Float = 1,
-        Suffix = '%s%%',
-        Flag = 'popup_slider',
-        Thickness = 12,
+    s:Toggle({
+        Name = 'Crash Server', Value = false, Risky = true, Flag = 'risky_crash',
         Callback = function(v)
-            print('slider changed to', v)
-        end,
-    })
-
-    popup:Dropdown({
-        Name = 'pick one',
-        Values = {'option a', 'option b', 'option c'},
-        Value = 'option a',
-        Flag = 'popup_dropdown',
-        Gradient = true,
-        ColorPicker = true,
-        Callback = function(v)
-            print('picked', v)
-        end,
-    })
-
-    popup:Label({
-        Name = 'this is just text',
-        Bold = false,
-        Dark = true,
-    })
-end
-
--- Compact slider
-do
-    local compact_section = CombatTab:Section({
-        Name = "compact slider",
-        Side = 'right',
-        AutoResize = true,
-    })
-
-    compact_section:Slider({
-        Name = 'compact mode',
-        Value = 50,
-        Min = 0,
-        Max = 100,
-        Float = 1,
-        Suffix = '%s%%',
-        Flag = 'compact_slider',
-        Compact = true,
-        Thickness = 14,
-        Callback = function(v)
-            print('compact slider =', v)
-        end,
-    })
-end
-
--- Keybind example
-do
-    local keybind_section = CombatTab:Section({
-        Name = "keybind example",
-        Side = 'right',
-        AutoResize = true,
-    })
-
-    local toggl = keybind_section:Toggle({
-        Name = 'feature with key',
-        Value = false,
-        Flag = 'keybind_toggle',
-        Callback = function(v)
-            print('enabled:', v)
-        end,
-    })
-
-    toggl:Keybind({
-        Key = Enum.KeyCode.X,
-        Mode = 'Toggle',
-        Flag = 'keybind_value',
-        Callback = function(v)
-            print('keybind triggered, state =', v)
-        end,
-    })
-end
-
--- ============================================================
--- MISC TAB
--- ============================================================
-
--- Slider examples
-do
-    local slider_section = MiscTab:Section({
-        Name = "slider example",
-        Side = 'left',
-        AutoResize = true,
-    })
-
-    slider_section:Slider({
-        Name = 'speed',
-        Value = 1,
-        Min = 0.1,
-        Max = 10,
-        Float = 0.1,
-        Suffix = '%s x',
-        Flag = 'slider_speed',
-        Thickness = 12,
-        Callback = function(v)
-            print('speed =', v)
-        end,
-    })
-
-    slider_section:Slider({
-        Name = 'compact speed',
-        Value = 5,
-        Min = 0,
-        Max = 20,
-        Float = 0.5,
-        Suffix = '%s x',
-        Flag = 'compact_speed',
-        Compact = true,
-        Thickness = 14,
-        Callback = function(v)
-            print('compact speed =', v)
-        end,
-    })
-end
-
--- Dropdown examples
-do
-    local dd_section = MiscTab:Section({
-        Name = "dropdown example",
-        Side = 'left',
-        AutoResize = true,
-    })
-
-    dd_section:Dropdown({
-        Name = 'single select',
-        Values = {'a', 'b', 'c'},
-        Value = 'a',
-        Flag = 'dd_single',
-        Gradient = true,
-        Callback = function(v) print('selected', v) end,
-    })
-
-    dd_section:Dropdown({
-        Name = 'multi select',
-        Values = {'x', 'y', 'z'},
-        Value = {'x'},
-        Multi = true,
-        Flag = 'dd_multi',
-        Gradient = true,
-        ColorPicker = true,
-        Callback = function(v)
-            for _, item in ipairs(v) do
-                print('checked:', item)
+            if v then
+                Library:Notification({ name = 'Risky', description = 'You enabled a risky feature!', time = 3 })
             end
         end,
     })
-end
 
--- Textbox example
-do
-    local tb_section = MiscTab:Section({
-        Name = "textbox example",
-        Side = 'right',
-        AutoResize = true,
+    s:Divider({ Text = "Safe Options" })
+
+    s:Toggle({
+        Name = 'Safe Toggle', Value = false, Flag = 'safe_toggle',
     })
 
-    tb_section:Textbox({
-        Name = 'config name',
-        Value = '',
-        Placeholder = 'type here...',
-        Flag = 'textbox_value',
-        Callback = function(v)
-            print('typed:', v)
+    s:Button({
+        Name = 'Nuke Map', Risky = true, Confirm = true,
+        Callback = function()
+            Library:Notification({ name = 'Risky', description = 'Nuke executed' })
         end,
     })
 end
 
--- Button example
 do
-    local btn_section = MiscTab:Section({
-        Name = "button example",
-        Side = 'right',
-        AutoResize = true,
+    local s = MiscTab:Section({ Name = "slider example", Side = 'left', AutoResize = true })
+    s:Slider({
+        Name = 'speed', Value = 1, Min = 0.1, Max = 10, Float = 0.1, Suffix = '%s x',
+        Flag = 'slider_speed', Thickness = 12,
+        Callback = function(v) print('speed =', v) end,
     })
+    s:Slider({
+        Name = 'compact speed', Value = 5, Min = 0, Max = 20, Float = 0.5, Suffix = '%s x',
+        Flag = 'compact_speed', Compact = true, Thickness = 14,
+        Callback = function(v) print('compact speed =', v) end,
+    })
+end
 
-    btn_section:Button({
+do
+    local s = MiscTab:Section({ Name = "dropdown example", Side = 'left', AutoResize = true })
+    s:Dropdown({
+        Name = 'single select', Values = {'a', 'b', 'c'}, Value = 'a',
+        Flag = 'dd_single', Gradient = true,
+        Callback = function(v) print('selected', v) end,
+    })
+    s:Dropdown({
+        Name = 'multi select', Values = {'x', 'y', 'z'}, Value = {'x'},
+        Multi = true, Flag = 'dd_multi', Gradient = true, ColorPicker = true,
+        Callback = function(v)
+            for _, item in ipairs(v) do print('checked:', item) end
+        end,
+    })
+end
+
+do
+    local s = MiscTab:Section({ Name = "textbox example", Side = 'right', AutoResize = true })
+    s:Textbox({
+        Name = 'config name', Value = '', Placeholder = 'type here...', Flag = 'textbox_value',
+        Callback = function(v) print('typed:', v) end,
+    })
+end
+
+do
+    local s = MiscTab:Section({ Name = "button example", Side = 'right', AutoResize = true })
+    s:Button({
         Name = 'click me',
         Callback = function()
             print('button pressed!')
-            Library:Notification({
-                Name = 'Example',
-                Description = 'You clicked the button',
-                Type = 'Time',
-                Time = 3,
-            })
+            Library:Notification({ Name = 'Example', Description = 'You clicked the button', Type = 'Time', Time = 3 })
         end,
     })
+    s:Divider({ Text = "Actions" })
+    s:Button({ Name = 'gradient button', Gradient = true, Callback = function() print('gradient button pressed!') end })
+end
 
-    btn_section:Divider({ Text = "Actions" })
-
-    btn_section:Button({
-        Name = 'gradient button',
-        Gradient = true,
-        Callback = function()
-            print('gradient button pressed!')
-        end,
+do
+    local s = VisualsTab:Section({ Name = "colorpicker example", Side = 'left', AutoResize = true })
+    s:Colorpicker({
+        Name = 'my color', Value = Color3.fromRGB(255, 255, 255), Alpha = 0, Flag = 'my_color',
+        Callback = function(d) print('color:', d.c, 'alpha:', d.a) end,
     })
 end
 
--- ============================================================
--- VISUALS TAB
--- ============================================================
-
--- Colorpicker example
 do
-    local cp_section = VisualsTab:Section({
-        Name = "colorpicker example",
-        Side = 'left',
-        AutoResize = true,
-    })
-
-    cp_section:Colorpicker({
-        Name = 'my color',
-        Value = Color3.fromRGB(255, 255, 255),
-        Alpha = 0,
-        Flag = 'my_color',
-        Callback = function(d)
-            print('color:', d.c, 'alpha:', d.a)
-        end,
-    })
-end
-
--- Nested popups
-do
-    local nested_section = VisualsTab:Section({
-        Name = "nested popup example",
-        Side = 'right',
-        AutoResize = true,
-    })
-
-    local level1 = nested_section:Toggle({
-        Name = 'level 1',
-        Value = false,
-        Flag = 'level1',
-    })
-
+    local s = VisualsTab:Section({ Name = "nested popup example", Side = 'right', AutoResize = true })
+    local level1 = s:Toggle({ Name = 'level 1', Value = false, Flag = 'level1' })
     local popup1 = level1:Popup({ Size = 200 })
-
-    local level2 = popup1:Toggle({
-        Name = 'level 2',
-        Value = false,
-        Flag = 'level2',
-    })
-
+    local level2 = popup1:Toggle({ Name = 'level 2', Value = false, Flag = 'level2' })
     local popup2 = level2:Popup({ Size = 200 })
-
     popup2:Slider({
-        Name = 'deep setting',
-        Value = 5,
-        Min = 0,
-        Max = 10,
-        Float = 1,
-        Flag = 'deep_slider',
-        Thickness = 12,
+        Name = 'deep setting', Value = 5, Min = 0, Max = 10, Float = 1, Flag = 'deep_slider', Thickness = 12,
         Callback = function(v) print('deep =', v) end,
     })
 end
 
--- ============================================================
--- SETTINGS TAB
--- ============================================================
 do
     local cs = SettingsTab:Section({ Name = 'configs', Side = 'left',  AutoResize = true })
     local us = SettingsTab:Section({ Name = 'server',  Side = 'left',  AutoResize = true })
-    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MaxHeight = 800 })
+    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeight = 1000, MaxHeight = 1000 })
 
-    -- ---------- Configs (LEFT) ----------
     cs:Textbox({
         Name = 'config name',
         Value = '',
@@ -403,7 +231,7 @@ do
         Flag = 'config_name',
     })
 
-    local cfgPath = 'brrr.lol\\Configs'
+    local cfgPath = 'richard\\Configs'
     local function getCfgList()
         local cfg = {}
         if isfolder and isfolder(cfgPath) then
@@ -456,6 +284,9 @@ do
                             if Library.UpdateGradients then
                                 Library:UpdateGradients()
                             end
+                            if Library.Flags['binds_visible'] ~= nil then
+                                setBindsVisible(Library.Flags['binds_visible'])
+                            end
                         end
                     end)
                 end
@@ -476,7 +307,6 @@ do
         if dd and dd.Refresh then dd.Refresh(getCfgList()) end
     end })
 
-    -- ---------- Server / teleport (LEFT) ----------
     us:Button({ Name = 'copy jobid',  Callback = function() setclipboard(game.JobId) end })
     us:Button({ Name = 'copy gameid', Callback = function() setclipboard(tostring(game.GameId)) end })
     us:Button({
@@ -516,8 +346,7 @@ do
     us:Slider({ Name = 'min players', Value = 1,  Min = 1, Max = 30, Float = 1, Thickness = 12, Callback = function() end, Flag = 'srv_min' })
     us:Slider({ Name = 'max players', Value = 15, Min = 1, Max = 30, Float = 1, Thickness = 12, Callback = function() end, Flag = 'srv_max' })
 
-    -- ---------- Theme (RIGHT): menu keybind, watermark, gradients, theme colors ----------
-
+    -- THEME SECTION
     ts:Label({ Name = 'menu', Bold = true })
     ts:Keybind({
         Name = 'menu keybind',
@@ -527,68 +356,6 @@ do
             if Window and Window.Open then Window:Open() end
         end,
         Flag = 'menu_keybind',
-    })
-
-    ts:Divider({ Text = "watermark" })
-
-    local watermarkToggle = ts:Toggle({
-        Name = 'watermark',
-        Value = false,
-        Callback = function(v)
-            if Watermark and Watermark.SetVisible then Watermark.SetVisible(v) end
-        end,
-        Flag = 'watermark_enabled',
-    })
-
-    local watermarkPopup = watermarkToggle:Popup({Size = 220})
-
-    local function updateWatermark()
-        local text = 'brrr.lol'
-        local types = Library.Flags.watermark_types
-        if types and #types > 0 then
-            for _, v in ipairs(types) do
-                text = text .. ' | {' .. v .. '}'
-            end
-        end
-        if Watermark and Watermark.SetText then Watermark.SetText(text) end
-    end
-
-    watermarkPopup:Slider({
-        Name = 'update rate',
-        Value = 200,
-        Min = 0,
-        Max = 1000,
-        Float = 1,
-        Suffix = '%s ms',
-        Thickness = 12,
-        Callback = function(v)
-            Library.Flags.watermark_rate = v
-            if Watermark and Watermark.SetRate then Watermark.SetRate(v / 1000) end
-        end,
-        Flag = 'watermark_rate',
-    })
-
-    watermarkPopup:Dropdown({
-        Name = 'info types',
-        Values = {'fps', 'ping', 'time', 'date', 'hour', 'minute', 'second', 'ap', 'month', 'day', 'year', 'game', 'n'},
-        Value = {'game', 'time'},
-        Multi = true,
-        Gradient = true,
-        ColorPicker = true,
-        Callback = function(v)
-            Library.Flags.watermark_types = v
-            updateWatermark()
-        end,
-        Flag = 'watermark_types',
-    })
-
-    ts:Toggle({
-        Name = 'attach watermark',
-        Value = true,
-        Callback = function(v)
-            if Watermark and Watermark.SetAttached then Watermark.SetAttached(v) end
-        end,
-        Flag = 'watermark_attached',
     })
 
     ts:Divider({ Text = "theme colors" })
@@ -647,15 +414,143 @@ do
 
         ts:Divider({ Text = "" })
     end
+
+    -- OVERLAYS SECTION
+    local overlaysSection = SettingsTab:Section({ Name = 'overlays', Side = 'right', AutoResize = true })
+
+    local watermarkToggle = overlaysSection:Toggle({
+        Name = 'watermark',
+        Value = false,
+        Flag = 'watermark_enabled',
+        Callback = function(v)
+            if Watermark and Watermark.SetVisible then Watermark.SetVisible(v) end
+        end,
+    })
+
+    local watermarkPopup = watermarkToggle:Popup({ Size = 240 })
+
+    local function updateWatermark()
+        local text = 'richard'
+        local types = Library.Flags.watermark_types
+        if types and #types > 0 then
+            for _, v in ipairs(types) do
+                text = text .. ' | {' .. v .. '}'
+            end
+        end
+        if Watermark and Watermark.SetText then Watermark.SetText(text) end
+    end
+
+    watermarkPopup:Slider({
+        Name = 'update rate',
+        Value = 200,
+        Min = 0,
+        Max = 1000,
+        Float = 1,
+        Suffix = '%s ms',
+        Thickness = 12,
+        Callback = function(v)
+            Library.Flags.watermark_rate = v
+            if Watermark and Watermark.SetRate then Watermark.SetRate(v / 1000) end
+        end,
+        Flag = 'watermark_rate',
+    })
+
+    watermarkPopup:Dropdown({
+        Name = 'info types',
+        Values = {'fps', 'ping', 'time', 'date', 'hour', 'minute', 'second', 'ap', 'month', 'day', 'year', 'game', 'n'},
+        Value = {'game', 'time'},
+        Multi = true,
+        Gradient = true,
+        ColorPicker = true,
+        Callback = function(v)
+            Library.Flags.watermark_types = v
+            updateWatermark()
+        end,
+        Flag = 'watermark_types',
+    })
+
+    watermarkPopup:Toggle({
+        Name = 'attach watermark',
+        Value = true,
+        Flag = 'watermark_attached',
+        Callback = function(v)
+            if Watermark and Watermark.SetAttached then Watermark.SetAttached(v) end
+        end,
+    })
+
+    local bindsToggle = overlaysSection:Toggle({
+        Name = 'show binds overlay',
+        Value = true,
+        Flag = 'binds_visible',
+        Callback = function(v)
+            setBindsVisible(v)
+        end,
+    })
+
+    local bindsPopup = bindsToggle:Popup({ Size = 220 })
+
+    bindsPopup:Colorpicker({
+        Name = 'header background',
+        Value = Binds.Colors.HeaderBackground,
+        Alpha = 0,
+        Flag = 'binds_header_bg',
+        Callback = function(d) Binds:SetHeaderBackground(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'header stroke',
+        Value = Binds.Colors.HeaderStroke,
+        Alpha = 0,
+        Flag = 'binds_header_stroke',
+        Callback = function(d) Binds:SetHeaderStroke(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'title color',
+        Value = Binds.Colors.Title,
+        Alpha = 0,
+        Flag = 'binds_title',
+        Callback = function(d) Binds:SetTitle(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'icon color',
+        Value = Binds.Colors.Icon,
+        Alpha = 0,
+        Flag = 'binds_icon',
+        Callback = function(d) Binds:SetIcon(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'row name (inactive)',
+        Value = Binds.Colors.RowName,
+        Alpha = 0,
+        Flag = 'binds_row_name',
+        Callback = function(d) Binds:SetRowName(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'row name (active)',
+        Value = Binds.Colors.RowActive,
+        Alpha = 0,
+        Flag = 'binds_row_active',
+        Callback = function(d) Binds:SetRowActive(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'row key / badge',
+        Value = Binds.Colors.RowKey,
+        Alpha = 0,
+        Flag = 'binds_row_key',
+        Callback = function(d) Binds:SetRowKey(d.c) end,
+    })
 end
 
--- Select default tab
+
 CombatTab.Set(true)
 
--- Welcome notification
 Library.Notification({
-    name = 'brrr.lol',
-    description = 'template loaded — no features active',
+    name = 'brrr has been loaded',
     type = 'Time',
     time = 5,
 })
