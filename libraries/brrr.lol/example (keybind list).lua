@@ -1,13 +1,18 @@
 local LoadingTick = os.clock()
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%201.6.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%202.1.lua"))()
 
 local Window = Library:Window({
     Name = "richard",
     Size = UDim2.new(0, 550, 0, 475),
     Open = true,
-    FontSize = 20
+    FontSize = 20,
+    showBottomBar = true,
+    version = SCRIPT_VERSION,
 })
 
+-- ============================================================
+-- THEME
+-- ============================================================
 Library.Theme.Accent                = Color3.fromHex('ddfbff')
 Library.Theme.Text                  = Color3.fromHex('ddfbff')
 Library.Theme['Dark Text']          = Color3.fromHex('565656')
@@ -19,6 +24,7 @@ Library.Theme['Inline']             = Color3.fromHex('131313')
 Library.Theme['Dark Background']    = Color3.fromHex('000000')
 Library.Theme.Outline               = Color3.fromHex('1a1a1a')
 Library.Theme['Title Color']        = Color3.fromHex('ddfbff')
+Library.Theme.Risk                  = Color3.fromHex('ff4d4d')
 
 Library.Gradients.Title       = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0 }
 Library.Gradients.Scroll      = { Start = Color3.fromHex('030303'), End = Color3.fromHex('030303'), Enabled = true, Transparency = 0.6 }
@@ -29,6 +35,9 @@ Library.Gradients.Placeholder = { Start = Color3.fromHex('676767'), End = Color3
 Library.Gradients.Watermark   = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0.3 }
 Library:UpdateGradients()
 
+-- ============================================================
+-- TABS
+-- ============================================================
 local icons = {
     combat   = 'rbxassetid://111386589037485',
     misc     = 'rbxassetid://126028986879491',
@@ -41,6 +50,9 @@ local MiscTab     = Window:Tab({ Name = "misc",     Icon = icons.misc     })
 local VisualsTab  = Window:Tab({ Name = "visuals",  Icon = icons.visuals  })
 local SettingsTab = Window:Tab({ Name = "settings", Icon = icons.settings })
 
+-- ============================================================
+-- WATERMARK
+-- ============================================================
 local Watermark = Library:Watermark({
     Text = 'richard | {fps} FPS | {ping} ms',
     Visible = false,
@@ -48,7 +60,7 @@ local Watermark = Library:Watermark({
 })
 
 -- ============================================================
--- BINDS OVERLAY (standalone, only shows enabled features)
+-- BINDS OVERLAY
 -- ============================================================
 local Binds = Library:BindsOverlay({
     Name = 'Binds',
@@ -58,7 +70,6 @@ local Binds = Library:BindsOverlay({
     Width = 200,
 })
 
--- helper so we don't have to guess the API name
 local function setBindsVisible(v)
     if not Binds then return end
     if Binds.SetVisible then
@@ -77,47 +88,28 @@ do
     local s = CombatTab:Section({ Name = "combat binds", Side = 'left', AutoResize = true })
 
     s:Keybind({
-        Name = 'Double Tap',
-        DisplayName = 'Double Tap',
-        Key = Enum.KeyCode.X,
-        Mode = 'Toggle',
-        Flag = 'bind_double_tap',
+        Name = 'Double Tap', DisplayName = 'Double Tap',
+        Key = Enum.KeyCode.X, Mode = 'Toggle', Flag = 'bind_double_tap',
         Callback = function(v) print('Double Tap:', v) end,
     })
-
     s:Keybind({
-        Name = 'Hide Shots',
-        DisplayName = 'Hide Shots',
-        Key = Enum.KeyCode.C,
-        Mode = 'Toggle',
-        Flag = 'bind_hide_shots',
+        Name = 'Hide Shots', DisplayName = 'Hide Shots',
+        Key = Enum.KeyCode.C, Mode = 'Toggle', Flag = 'bind_hide_shots',
         Callback = function(v) print('Hide Shots:', v) end,
     })
-
     s:Keybind({
-        Name = 'Freestanding',
-        DisplayName = 'Freestanding',
-        Key = Enum.KeyCode.V,
-        Mode = 'Toggle',
-        Flag = 'bind_freestanding',
+        Name = 'Freestanding', DisplayName = 'Freestanding',
+        Key = Enum.KeyCode.V, Mode = 'Toggle', Flag = 'bind_freestanding',
         Callback = function(v) print('Freestanding:', v) end,
     })
-
     s:Keybind({
-        Name = 'Force body aim',
-        DisplayName = 'Force body aim',
-        Key = Enum.KeyCode.F,
-        Mode = 'Toggle',
-        Flag = 'bind_force_body_aim',
+        Name = 'Force body aim', DisplayName = 'Force body aim',
+        Key = Enum.KeyCode.F, Mode = 'Toggle', Flag = 'bind_force_body_aim',
         Callback = function(v) print('Force body aim:', v) end,
     })
-
     s:Keybind({
-        Name = 'Fake Duck',
-        DisplayName = 'Fake Duck',
-        Key = Enum.KeyCode.G,
-        Mode = 'Toggle',
-        Flag = 'bind_fake_duck',
+        Name = 'Fake Duck', DisplayName = 'Fake Duck',
+        Key = Enum.KeyCode.G, Mode = 'Toggle', Flag = 'bind_fake_duck',
         Callback = function(v) print('Fake Duck:', v) end,
     })
 end
@@ -125,24 +117,48 @@ end
 do
     local s = CombatTab:Section({ Name = "toggle example", Side = 'right', AutoResize = true })
     s:Toggle({
-        Name = 'my toggle',
-        Value = false,
-        Flag = 'my_toggle',
+        Name = 'my toggle', Value = false, Flag = 'my_toggle',
         Callback = function(v) print('toggle is now:', v) end,
     })
     s:Toggle({
-        Name = 'another toggle',
-        Value = true,
-        Flag = 'another_toggle',
+        Name = 'another toggle', Value = true, Flag = 'another_toggle',
     })
 end
 
 do
-    local s = CombatTab:Section({ Name = "divider example", Side = 'right', AutoResize = true })
-    s:Divider({ Text = "Combat Settings" })
-    s:Toggle({ Name = 'divider toggle', Value = false, Flag = 'divider_toggle' })
-    s:Divider({ Text = "More Options" })
-    s:Toggle({ Name = 'another toggle 2', Value = true, Flag = 'another_toggle_2' })
+    local s = CombatTab:Section({ Name = "risky stuff", Side = 'right', AutoResize = true })
+
+    s:Label({
+        Name = '⚠ WARNING: The options below are dangerous',
+        Risky = true, Bold = true,
+    })
+
+    s:Toggle({
+        Name = 'Delete All Parts', Value = false, Risky = true, Flag = 'risky_delete',
+        Callback = function(v) print('Delete parts:', v) end,
+    })
+
+    s:Toggle({
+        Name = 'Crash Server', Value = false, Risky = true, Flag = 'risky_crash',
+        Callback = function(v)
+            if v then
+                Library:Notification({ name = 'Risky', description = 'You enabled a risky feature!', time = 3 })
+            end
+        end,
+    })
+
+    s:Divider({ Text = "Safe Options" })
+
+    s:Toggle({
+        Name = 'Safe Toggle', Value = false, Flag = 'safe_toggle',
+    })
+
+    s:Button({
+        Name = 'Nuke Map', Risky = true, Confirm = true,
+        Callback = function()
+            Library:Notification({ name = 'Risky', description = 'Nuke executed' })
+        end,
+    })
 end
 
 -- ============================================================
@@ -228,7 +244,7 @@ end
 do
     local cs = SettingsTab:Section({ Name = 'configs', Side = 'left',  AutoResize = true })
     local us = SettingsTab:Section({ Name = 'server',  Side = 'left',  AutoResize = true })
-    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeihgt = 1000, MaxHeight = 1000 })
+    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeight = 1000, MaxHeight = 1000 })
 
     cs:Textbox({
         Name = 'config name',
@@ -290,7 +306,6 @@ do
                             if Library.UpdateGradients then
                                 Library:UpdateGradients()
                             end
-                            -- re-apply binds overlay visibility from loaded config
                             if Library.Flags['binds_visible'] ~= nil then
                                 setBindsVisible(Library.Flags['binds_visible'])
                             end
@@ -353,9 +368,7 @@ do
     us:Slider({ Name = 'min players', Value = 1,  Min = 1, Max = 30, Float = 1, Thickness = 12, Callback = function() end, Flag = 'srv_min' })
     us:Slider({ Name = 'max players', Value = 15, Min = 1, Max = 30, Float = 1, Thickness = 12, Callback = function() end, Flag = 'srv_max' })
 
-    -- ============================================================
-    -- THEME SECTION (menu keybind + theme colors + gradients)
-    -- ============================================================
+    -- THEME SECTION
     ts:Label({ Name = 'menu', Bold = true })
     ts:Keybind({
         Name = 'menu keybind',
@@ -424,12 +437,9 @@ do
         ts:Divider({ Text = "" })
     end
 
-    -- ============================================================
-    -- OVERLAYS SECTION (watermark + binds overlay)
-    -- ============================================================
+    -- OVERLAYS SECTION
     local overlaysSection = SettingsTab:Section({ Name = 'overlays', Side = 'right', AutoResize = true })
 
-    -- ----- watermark toggle + popup -----
     local watermarkToggle = overlaysSection:Toggle({
         Name = 'watermark',
         Value = false,
@@ -490,7 +500,6 @@ do
         end,
     })
 
-    -- ----- binds overlay toggle + popup -----
     local bindsToggle = overlaysSection:Toggle({
         Name = 'show binds overlay',
         Value = true,
@@ -559,6 +568,9 @@ do
     })
 end
 
+-- ============================================================
+-- INIT
+-- ============================================================
 CombatTab.Set(true)
 
 Library.Notification({
