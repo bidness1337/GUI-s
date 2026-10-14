@@ -629,6 +629,8 @@ local Library = (function()
             ['Title Color'] = Color3.fromRGB(0, 134, 229),
             Risk = Color3.fromRGB(255, 60, 60),
         },
+        -- Binds-specific theme keys are added below in the outer script so they're not shown in the theme colorpicker loop
+        HiddenThemeKeys = {},
         Gradients = {
             Title = { Start = Color3.fromRGB(0, 134, 229), End = Color3.fromRGB(120, 200, 255), Enabled = true, Transparency = 0 },
             Scroll = { Start = Color3.fromRGB(36, 36, 36), End = Color3.fromRGB(36, 36, 36), Enabled = true, Transparency = 0.5 },
@@ -914,6 +916,10 @@ local Library = (function()
                         end
                     end
                 end
+            end
+            -- Refresh binds overlay whenever a theme changes
+            if Library.Binds and Library.Binds.RefreshTheme then
+                Library.Binds:RefreshTheme()
             end
         end
 
@@ -5834,32 +5840,55 @@ local Library = (function()
                 DragStart = nil,
                 DragOrigin = nil,
                 Colors = {
-                    HeaderBackground = Color3.fromRGB(60, 60, 60),
-                    HeaderTransparency = 0.5,
-                    Title = Color3.fromRGB(255, 255, 255),
-                    Icon = Library.Theme.Accent,
+                    -- Header
+                    HeaderBackground            = 'Binds Header Background',
+                    HeaderTransparency          = 0,
+                    Title                       = 'Binds Header Title',
+                    TitleTransparency           = 0,
+                    Icon                        = 'Binds Header Icon',
+                    IconTransparency            = 0,
 
-                    RowBackground = Color3.fromRGB(60, 60, 60),
-                    RowTransparency = 0.5,
-                    RowName = Color3.fromRGB(180, 180, 180),
-                    RowKey = Color3.fromRGB(130, 130, 130),
-                    RowMode = Color3.fromRGB(130, 130, 130),
+                    -- Row inactive
+                    RowBackground               = 'Binds Row Background',
+                    RowTransparency             = 0.95,
+                    RowName                     = 'Binds Row Name',
+                    NameTransparency            = 0,
+                    RowKey                      = 'Binds Row Key',
+                    KeyTransparency             = 0,
+                    RowMode                     = 'Binds Row Mode',
+                    ModeTransparency            = 0,
 
-                    RowActiveBackground = Library.Theme.Accent,
-                    RowActiveTransparency = 0.5,
-                    RowActiveName = Color3.fromRGB(255, 255, 255),
-                    RowActiveKey = Color3.fromRGB(255, 255, 255),
-                    RowActiveMode = Color3.fromRGB(255, 255, 255),
+                    -- Row active
+                    RowActiveBackground         = 'Binds Row Active Background',
+                    RowActiveTransparency       = 0.95,
+                    RowActiveName               = 'Binds Row Active Name',
+                    RowActiveNameTransparency   = 0,
+                    RowActiveKey                = 'Binds Row Active Key',
+                    RowActiveKeyTransparency    = 0,
+                    RowActiveMode               = 'Binds Row Active Mode',
+                    RowActiveModeTransparency   = 0,
 
-                    TextOutline = Color3.fromRGB(0, 0, 0),
-                    TextOutlineTransparency = 0.4,
+                    -- Text outline
+                    TextOutline                 = 'Binds Text Outline',
+                    TextOutlineTransparency     = 0,
                 },
             }
+
+            local function Resolve(v)
+                if type(v) == 'string' and Library.Theme[v] then
+                    return Library.Theme[v]
+                elseif type(v) == 'function' then
+                    return v()
+                end
+                return v
+            end
+            Binds.Resolve = Resolve
+
             local ZIndex = Binds.ZIndex
             local Objects = Binds.Objects
 
             local function FormatKey(key)
-                if not key then return '?' end
+                if not key then return 'None' end
                 if typeof(key) == 'EnumItem' then
                     return Library.KeyConverters[key.Name:lower()] or key.Name
                 end
@@ -5870,7 +5899,7 @@ local Library = (function()
                 return Utility.New('UIStroke', {
                     Name = 'TextOutline',
                     Parent = label,
-                    Color = Binds.Colors.TextOutline,
+                    Color = Resolve(Binds.Colors.TextOutline),
                     Thickness = 1,
                     Transparency = Binds.Colors.TextOutlineTransparency,
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
@@ -5907,21 +5936,19 @@ local Library = (function()
 
             Objects.HeaderContainer = Utility.New('Frame', {
                 Name = 'HeaderContainer',
-                Size = UDim2.new(1, 0, 0, 24),
-                BackgroundColor3 = Binds.Colors.HeaderBackground,
+                Size = UDim2.new(1, 0, 0, 22),
+                BackgroundColor3 = Resolve(Binds.Colors.HeaderBackground),
                 BackgroundTransparency = Binds.Colors.HeaderTransparency,
                 BorderSizePixel = 0,
                 Parent = Objects.Root,
                 ZIndex = ZIndex + 1,
                 LayoutOrder = 0,
             })
-
             Utility.New('UICorner', {
                 Name = 'UICorner',
                 Parent = Objects.HeaderContainer,
-                CornerRadius = UDim.new(0, 5),
+                CornerRadius = UDim.new(0, 4),
             })
-
             Utility.New('UIListLayout', {
                 Name = 'UIListLayout',
                 FillDirection = Enum.FillDirection.Horizontal,
@@ -5937,7 +5964,8 @@ local Library = (function()
                 Size = UDim2.new(0, 12, 0, 12),
                 BackgroundTransparency = 1,
                 Image = cfg.icon,
-                ImageColor3 = Binds.Colors.Icon,
+                ImageColor3 = Resolve(Binds.Colors.Icon),
+                ImageTransparency = Binds.Colors.IconTransparency,
                 LayoutOrder = 1,
                 Parent = Objects.HeaderContainer,
                 ZIndex = ZIndex + 1,
@@ -5946,10 +5974,11 @@ local Library = (function()
             Objects.Title = Utility.New('TextLabel', {
                 Name = 'Title',
                 Text = cfg.name,
-                TextSize = Library.FontSize - 1,
+                TextSize = Library.FontSize,
                 FontFace = Library.Font,
-                TextColor3 = Binds.Colors.Title,
-                TextStrokeTransparency = 0.8,
+                TextColor3 = Resolve(Binds.Colors.Title),
+                TextTransparency = Binds.Colors.TitleTransparency,
+                TextStrokeTransparency = 1,
                 BackgroundTransparency = 1,
                 Size = UDim2.new(0, 0, 1, 0),
                 AutomaticSize = Enum.AutomaticSize.X,
@@ -6007,11 +6036,13 @@ local Library = (function()
             function Binds:CreateRow(flag, data)
                 if self.Rows[flag] then return self.Rows[flag] end
 
+                local C = Binds.Colors
+
                 local Row = Utility.New('Frame', {
                     Name = 'Row_' .. flag,
                     Size = UDim2.new(1, 0, 0, 22),
-                    BackgroundColor3 = Binds.Colors.RowBackground,
-                    BackgroundTransparency = Binds.Colors.RowTransparency,
+                    BackgroundColor3 = Resolve(C.RowBackground),
+                    BackgroundTransparency = C.RowTransparency,
                     BorderSizePixel = 0,
                     Parent = Objects.RowsContainer,
                     ZIndex = ZIndex + 2,
@@ -6019,16 +6050,14 @@ local Library = (function()
                 Utility.New('UICorner', {
                     Name = 'UICorner',
                     Parent = Row,
-                    CornerRadius = UDim.new(0, 5),
+                    CornerRadius = UDim.new(0, 4),
                 })
-
                 Utility.New('UIPadding', {
                     Name = 'UIPadding',
                     Parent = Row,
                     PaddingLeft = UDim.new(0, 8),
                     PaddingRight = UDim.new(0, 8),
                 })
-
                 Utility.New('UIListLayout', {
                     Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
@@ -6042,10 +6071,11 @@ local Library = (function()
                 local Name = Utility.New('TextLabel', {
                     Name = 'Name',
                     Text = data.displayName or flag,
-                    TextSize = Library.FontSize - 1,
+                    TextSize = Library.FontSize,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowName,
-                    TextStrokeTransparency = 0.8,
+                    TextColor3 = Resolve(C.RowName),
+                    TextTransparency = C.NameTransparency,
+                    TextStrokeTransparency = 1,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(1, -90, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -6060,10 +6090,11 @@ local Library = (function()
                 local Mode = Utility.New('TextLabel', {
                     Name = 'Mode',
                     Text = '[toggle]',
-                    TextSize = Library.FontSize - 2,
+                    TextSize = Library.FontSize - 1,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowMode,
-                    TextStrokeTransparency = 0.8,
+                    TextColor3 = Resolve(C.RowMode),
+                    TextTransparency = C.ModeTransparency,
+                    TextStrokeTransparency = 1,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(0, 0, 1, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
@@ -6079,10 +6110,11 @@ local Library = (function()
                 local Key = Utility.New('TextLabel', {
                     Name = 'Key',
                     Text = '[' .. keyText .. ']',
-                    TextSize = Library.FontSize - 2,
+                    TextSize = Library.FontSize - 1,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowKey,
-                    TextStrokeTransparency = 0.8,
+                    TextColor3 = Resolve(C.RowKey),
+                    TextTransparency = C.KeyTransparency,
+                    TextStrokeTransparency = 1,
                     BackgroundTransparency = 1,
                     Size = UDim2.new(0, 0, 1, 0),
                     AutomaticSize = Enum.AutomaticSize.X,
@@ -6113,6 +6145,7 @@ local Library = (function()
                 local Entry = self.Rows[flag]
                 if not Entry then return end
 
+                local C = Binds.Colors
                 local keyText = FormatKey(data.key)
                 Entry.Name.Text = data.displayName or flag
                 Entry.Mode.Text = '[' .. (data.mode or 'toggle'):lower() .. ']'
@@ -6120,18 +6153,24 @@ local Library = (function()
                 Entry.Row.Visible = true
 
                 if active then
-                    Entry.Row.BackgroundColor3 = Binds.Colors.RowActiveBackground
-                    Entry.Row.BackgroundTransparency = Binds.Colors.RowActiveTransparency
-                    Entry.Name.TextColor3 = Binds.Colors.RowActiveName
-                    Entry.Mode.TextColor3 = Binds.Colors.RowActiveMode
-                    Entry.Key.TextColor3 = Binds.Colors.RowActiveKey
+                    Entry.Row.BackgroundColor3 = Resolve(C.RowActiveBackground)
+                    Entry.Row.BackgroundTransparency = C.RowActiveTransparency
+                    Entry.Name.TextColor3 = Resolve(C.RowActiveName)
+                    Entry.Name.TextTransparency = C.RowActiveNameTransparency
+                    Entry.Mode.TextColor3 = Resolve(C.RowActiveMode)
+                    Entry.Mode.TextTransparency = C.RowActiveModeTransparency
+                    Entry.Key.TextColor3 = Resolve(C.RowActiveKey)
+                    Entry.Key.TextTransparency = C.RowActiveKeyTransparency
                     Entry.Active = true
                 else
-                    Entry.Row.BackgroundColor3 = Binds.Colors.RowBackground
-                    Entry.Row.BackgroundTransparency = Binds.Colors.RowTransparency
-                    Entry.Name.TextColor3 = Binds.Colors.RowName
-                    Entry.Mode.TextColor3 = Binds.Colors.RowMode
-                    Entry.Key.TextColor3 = Binds.Colors.RowKey
+                    Entry.Row.BackgroundColor3 = Resolve(C.RowBackground)
+                    Entry.Row.BackgroundTransparency = C.RowTransparency
+                    Entry.Name.TextColor3 = Resolve(C.RowName)
+                    Entry.Name.TextTransparency = C.NameTransparency
+                    Entry.Mode.TextColor3 = Resolve(C.RowMode)
+                    Entry.Mode.TextTransparency = C.ModeTransparency
+                    Entry.Key.TextColor3 = Resolve(C.RowKey)
+                    Entry.Key.TextTransparency = C.KeyTransparency
                     Entry.Active = false
                 end
             end
@@ -6157,6 +6196,45 @@ local Library = (function()
             Binds:Scan()
             Utility.Signal(RunService.Heartbeat:Connect(function() Binds:Scan() end))
 
+            function Binds:RefreshTheme()
+                local C = self.Colors
+                Objects.HeaderContainer.BackgroundColor3 = Resolve(C.HeaderBackground)
+                Objects.HeaderContainer.BackgroundTransparency = C.HeaderTransparency
+                Objects.Title.TextColor3 = Resolve(C.Title)
+                Objects.Title.TextTransparency = C.TitleTransparency
+                Objects.Icon.ImageColor3 = Resolve(C.Icon)
+                Objects.Icon.ImageTransparency = C.IconTransparency
+                if Objects.TitleOutline then
+                    Objects.TitleOutline.Color = Resolve(C.TextOutline)
+                end
+
+                for _, entry in pairs(self.Rows) do
+                    if entry.Active then
+                        entry.Row.BackgroundColor3 = Resolve(C.RowActiveBackground)
+                        entry.Row.BackgroundTransparency = C.RowActiveTransparency
+                        entry.Name.TextColor3 = Resolve(C.RowActiveName)
+                        entry.Name.TextTransparency = C.RowActiveNameTransparency
+                        entry.Mode.TextColor3 = Resolve(C.RowActiveMode)
+                        entry.Mode.TextTransparency = C.RowActiveModeTransparency
+                        entry.Key.TextColor3 = Resolve(C.RowActiveKey)
+                        entry.Key.TextTransparency = C.RowActiveKeyTransparency
+                    else
+                        entry.Row.BackgroundColor3 = Resolve(C.RowBackground)
+                        entry.Row.BackgroundTransparency = C.RowTransparency
+                        entry.Name.TextColor3 = Resolve(C.RowName)
+                        entry.Name.TextTransparency = C.NameTransparency
+                        entry.Mode.TextColor3 = Resolve(C.RowMode)
+                        entry.Mode.TextTransparency = C.ModeTransparency
+                        entry.Key.TextColor3 = Resolve(C.RowKey)
+                        entry.Key.TextTransparency = C.KeyTransparency
+                    end
+
+                    if entry.NameOutline then entry.NameOutline.Color = Resolve(C.TextOutline) end
+                    if entry.ModeOutline then entry.ModeOutline.Color = Resolve(C.TextOutline) end
+                    if entry.KeyOutline then entry.KeyOutline.Color = Resolve(C.TextOutline) end
+                end
+            end
+
             function Binds:SetVisible(v)
                 self.Visible = v
                 Objects.Root.Visible = v
@@ -6168,7 +6246,7 @@ local Library = (function()
 
             function Binds:SetHeaderBackground(color)
                 Binds.Colors.HeaderBackground = color
-                Objects.HeaderContainer.BackgroundColor3 = color
+                Objects.HeaderContainer.BackgroundColor3 = Resolve(color)
             end
 
             function Binds:SetHeaderTransparency(t)
@@ -6178,19 +6256,19 @@ local Library = (function()
 
             function Binds:SetTitle(color)
                 Binds.Colors.Title = color
-                Objects.Title.TextColor3 = color
+                Objects.Title.TextColor3 = Resolve(color)
             end
 
             function Binds:SetIcon(color)
                 Binds.Colors.Icon = color
-                Objects.Icon.ImageColor3 = color
+                Objects.Icon.ImageColor3 = Resolve(color)
             end
 
             function Binds:SetRowBackground(color)
                 Binds.Colors.RowBackground = color
                 for _, entry in pairs(Binds.Rows) do
                     if not entry.Active then
-                        entry.Row.BackgroundColor3 = color
+                        entry.Row.BackgroundColor3 = Resolve(color)
                     end
                 end
             end
@@ -6199,7 +6277,7 @@ local Library = (function()
                 Binds.Colors.RowName = color
                 for _, entry in pairs(Binds.Rows) do
                     if not entry.Active then
-                        entry.Name.TextColor3 = color
+                        entry.Name.TextColor3 = Resolve(color)
                     end
                 end
             end
@@ -6208,7 +6286,7 @@ local Library = (function()
                 Binds.Colors.RowKey = color
                 for _, entry in pairs(Binds.Rows) do
                     if not entry.Active then
-                        entry.Key.TextColor3 = color
+                        entry.Key.TextColor3 = Resolve(color)
                     end
                 end
             end
@@ -6217,7 +6295,7 @@ local Library = (function()
                 Binds.Colors.RowMode = color
                 for _, entry in pairs(Binds.Rows) do
                     if not entry.Active then
-                        entry.Mode.TextColor3 = color
+                        entry.Mode.TextColor3 = Resolve(color)
                     end
                 end
             end
@@ -6226,7 +6304,7 @@ local Library = (function()
                 Binds.Colors.RowActiveBackground = color
                 for _, entry in pairs(Binds.Rows) do
                     if entry.Active then
-                        entry.Row.BackgroundColor3 = color
+                        entry.Row.BackgroundColor3 = Resolve(color)
                     end
                 end
             end
@@ -6235,7 +6313,7 @@ local Library = (function()
                 Binds.Colors.RowActiveName = color
                 for _, entry in pairs(Binds.Rows) do
                     if entry.Active then
-                        entry.Name.TextColor3 = color
+                        entry.Name.TextColor3 = Resolve(color)
                     end
                 end
             end
@@ -6244,7 +6322,7 @@ local Library = (function()
                 Binds.Colors.RowActiveKey = color
                 for _, entry in pairs(Binds.Rows) do
                     if entry.Active then
-                        entry.Key.TextColor3 = color
+                        entry.Key.TextColor3 = Resolve(color)
                     end
                 end
             end
@@ -6253,18 +6331,18 @@ local Library = (function()
                 Binds.Colors.RowActiveMode = color
                 for _, entry in pairs(Binds.Rows) do
                     if entry.Active then
-                        entry.Mode.TextColor3 = color
+                        entry.Mode.TextColor3 = Resolve(color)
                     end
                 end
             end
 
             function Binds:SetTextOutline(color)
                 Binds.Colors.TextOutline = color
-                if Objects.TitleOutline then Objects.TitleOutline.Color = color end
+                if Objects.TitleOutline then Objects.TitleOutline.Color = Resolve(color) end
                 for _, entry in pairs(Binds.Rows) do
-                    if entry.NameOutline then entry.NameOutline.Color = color end
-                    if entry.ModeOutline then entry.ModeOutline.Color = color end
-                    if entry.KeyOutline then entry.KeyOutline.Color = color end
+                    if entry.NameOutline then entry.NameOutline.Color = Resolve(color) end
+                    if entry.ModeOutline then entry.ModeOutline.Color = Resolve(color) end
+                    if entry.KeyOutline then entry.KeyOutline.Color = Resolve(color) end
                 end
             end
 
@@ -6585,4 +6663,4 @@ local Library = (function()
     return Library
 end)()
 
-return Library 
+return Library
