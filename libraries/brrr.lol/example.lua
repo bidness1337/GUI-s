@@ -1,5 +1,6 @@
+
 local LoadingTick = os.clock()
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%202.1.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%202.3.lua"))()
 
 local Window = Library:Window({
     Name = "richard",
@@ -222,7 +223,7 @@ end
 do
     local cs = SettingsTab:Section({ Name = 'configs', Side = 'left',  AutoResize = true })
     local us = SettingsTab:Section({ Name = 'server',  Side = 'left',  AutoResize = true })
-    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeight = 1000, MaxHeight = 1000 })
+    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeihgt = 1000, MaxHeight = 1000 })
 
     cs:Textbox({
         Name = 'config name',
@@ -231,7 +232,7 @@ do
         Flag = 'config_name',
     })
 
-    local cfgPath = 'richard\\Configs'
+    local cfgPath = 'brrr.lol\\Configs'
     local function getCfgList()
         local cfg = {}
         if isfolder and isfolder(cfgPath) then
@@ -253,6 +254,17 @@ do
         Flag = 'selected_config',
         Gradient = true,
     })
+
+    local function setBindsVisible(v)
+        if not Binds then return end
+        if Binds.SetVisible then
+            Binds:SetVisible(v)
+        elseif Binds.SetVisibleState then
+            Binds:SetVisibleState(v)
+        else
+            Binds.Visible = v
+        end
+    end
 
     local function cfgOp(op)
         local flag = (op == 'load' or op == 'del' or op == 'ovr') and 'selected_config' or 'config_name'
@@ -287,6 +299,9 @@ do
                             if Library.Flags['binds_visible'] ~= nil then
                                 setBindsVisible(Library.Flags['binds_visible'])
                             end
+                        end
+                        if ReapplyAllSettings then
+                            ReapplyAllSettings()
                         end
                     end)
                 end
@@ -343,82 +358,26 @@ do
             end
         end,
     })
-    us:Slider({ Name = 'min players', Value = 1,  Min = 1, Max = 30, Float = 1, Thickness = 12, Callback = function() end, Flag = 'srv_min' })
-    us:Slider({ Name = 'max players', Value = 15, Min = 1, Max = 30, Float = 1, Thickness = 12, Callback = function() end, Flag = 'srv_max' })
+    us:Slider({ Name = 'min players', Value = 1,  Min = 1, Max = 30, Float = 1, Thickness = 16, Compact = true, Callback = function() end, Flag = 'srv_min' })
+    us:Slider({ Name = 'max players', Value = 15, Min = 1, Max = 30, Float = 1, Thickness = 16, Compact = true, Callback = function() end, Flag = 'srv_max' })
 
-    -- THEME SECTION
     ts:Label({ Name = 'menu', Bold = true })
+
     ts:Keybind({
         Name = 'menu keybind',
         Key = Enum.KeyCode.RightControl,
         Mode = 'Toggle',
-        Callback = function(v)
-            if Window and Window.Open then Window:Open() end
+        Callback = function()
+            if Window then
+                Window:Open()
+            end
         end,
         Flag = 'menu_keybind',
     })
 
-    ts:Divider({ Text = "theme colors" })
-    for theme, color in pairs(Library.Theme) do
-        ts:Colorpicker({
-            Name = theme:lower(),
-            Value = color,
-            Alpha = 0,
-            Callback = function(d)
-                Library.UpdateTheme(theme, d.c)
-            end,
-            Flag = 'theme_' .. theme:lower():gsub(' ', '_'),
-        })
-    end
+    ts:Divider({ Text = "overlays" })
 
-    ts:Divider({ Text = "gradients" })
-    for gradName, gradData in pairs(Library.Gradients) do
-        ts:Label({ Name = gradName, Bold = true })
-
-        ts:Colorpicker({
-            Name = 'start',
-            Value = gradData.Start,
-            Alpha = 0,
-            Callback = function(d)
-                Library.Gradients[gradName].Start = d.c
-                Library:UpdateGradients()
-            end,
-            Flag = 'grad_' .. gradName:lower() .. '_start',
-        })
-
-        ts:Colorpicker({
-            Name = 'end',
-            Value = gradData.End,
-            Alpha = 0,
-            Callback = function(d)
-                Library.Gradients[gradName].End = d.c
-                Library:UpdateGradients()
-            end,
-            Flag = 'grad_' .. gradName:lower() .. '_end',
-        })
-
-        ts:Slider({
-            Name = 'transparency',
-            Value = gradData.Transparency * 100,
-            Min = 0,
-            Max = 100,
-            Float = 1,
-            Suffix = '%s%%',
-            Thickness = 12,
-            Callback = function(v)
-                Library.Gradients[gradName].Transparency = v / 100
-                Library:UpdateGradients()
-            end,
-            Flag = 'grad_' .. gradName:lower() .. '_trans',
-        })
-
-        ts:Divider({ Text = "" })
-    end
-
-    -- OVERLAYS SECTION
-    local overlaysSection = SettingsTab:Section({ Name = 'overlays', Side = 'right', AutoResize = true })
-
-    local watermarkToggle = overlaysSection:Toggle({
+    local watermarkToggle = ts:Toggle({
         Name = 'watermark',
         Value = false,
         Flag = 'watermark_enabled',
@@ -427,10 +386,8 @@ do
         end,
     })
 
-    local watermarkPopup = watermarkToggle:Popup({ Size = 240 })
-
     local function updateWatermark()
-        local text = 'richard'
+        local text = 'brrr.lol'
         local types = Library.Flags.watermark_types
         if types and #types > 0 then
             for _, v in ipairs(types) do
@@ -440,6 +397,8 @@ do
         if Watermark and Watermark.SetText then Watermark.SetText(text) end
     end
 
+    local watermarkPopup = watermarkToggle:Popup({ Size = 240 })
+
     watermarkPopup:Slider({
         Name = 'update rate',
         Value = 200,
@@ -448,11 +407,11 @@ do
         Float = 1,
         Suffix = '%s ms',
         Thickness = 12,
+        Flag = 'watermark_rate',
         Callback = function(v)
             Library.Flags.watermark_rate = v
             if Watermark and Watermark.SetRate then Watermark.SetRate(v / 1000) end
         end,
-        Flag = 'watermark_rate',
     })
 
     watermarkPopup:Dropdown({
@@ -462,11 +421,11 @@ do
         Multi = true,
         Gradient = true,
         ColorPicker = true,
+        Flag = 'watermark_types',
         Callback = function(v)
             Library.Flags.watermark_types = v
             updateWatermark()
         end,
-        Flag = 'watermark_types',
     })
 
     watermarkPopup:Toggle({
@@ -478,9 +437,9 @@ do
         end,
     })
 
-    local bindsToggle = overlaysSection:Toggle({
+    local bindsToggle = ts:Toggle({
         Name = 'show binds overlay',
-        Value = true,
+        Value = false,
         Flag = 'binds_visible',
         Callback = function(v)
             setBindsVisible(v)
@@ -544,13 +503,78 @@ do
         Flag = 'binds_row_key',
         Callback = function(d) Binds:SetRowKey(d.c) end,
     })
-end
 
+    ts:Divider({ Text = "theme colors" })
+    for theme, color in pairs(Library.Theme) do
+        ts:Colorpicker({
+            Name = theme:lower(),
+            Value = color,
+            Alpha = 0,
+            Callback = function(d)
+                Library.UpdateTheme(theme, d.c)
+            end,
+            Flag = 'theme_' .. theme:lower():gsub(' ', '_'),
+        })
+    end
+
+    ts:Divider({ Text = "gradients" })
+
+    for gradName, gradData in pairs(Library.Gradients) do
+        local gradToggle = ts:Toggle({
+            Name = gradName:lower(),
+            Value = gradData.Enabled ~= false,
+            Flag = 'grad_' .. gradName:lower() .. '_enabled',
+            Callback = function(v)
+                Library.Gradients[gradName].Enabled = v
+                Library:UpdateGradients()
+            end,
+        })
+
+        local gradPopup = gradToggle:Popup({ Size = 240 })
+
+        gradPopup:Colorpicker({
+            Name = 'start',
+            Value = gradData.Start,
+            Alpha = 0,
+            Flag = 'grad_' .. gradName:lower() .. '_start',
+            Callback = function(d)
+                Library.Gradients[gradName].Start = d.c
+                Library:UpdateGradients()
+            end,
+        })
+
+        gradPopup:Colorpicker({
+            Name = 'end',
+            Value = gradData.End,
+            Alpha = 0,
+            Flag = 'grad_' .. gradName:lower() .. '_end',
+            Callback = function(d)
+                Library.Gradients[gradName].End = d.c
+                Library:UpdateGradients()
+            end,
+        })
+
+        gradPopup:Slider({
+            Name = 'transparency',
+            Value = gradData.Transparency * 100,
+            Min = 0,
+            Max = 100,
+            Float = 1,
+            Suffix = '%s%%',
+            Thickness = 12,
+            Flag = 'grad_' .. gradName:lower() .. '_trans',
+            Callback = function(v)
+                Library.Gradients[gradName].Transparency = v / 100
+                Library:UpdateGradients()
+            end,
+        })
+    end
+end
 
 CombatTab.Set(true)
 
 Library.Notification({
-    name = 'brrr has been loaded',
+    name = 'brrr.lol has been loaded',
     type = 'Time',
     time = 5,
 })
