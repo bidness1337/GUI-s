@@ -6180,16 +6180,26 @@ end
             end
 
             function Binds:Scan()
-                for flag, value in pairs(Library.Flags) do
-                    if type(value) == 'table' and value.key ~= nil and value.value ~= nil then
-                        if not self.Rows[flag] then
-                            self:CreateRow(flag, value)
-                        end
-                        local active = (value.value == true) or (value.mode == 'Always')
-                        self:UpdateRow(flag, value, active)
-                    end
+    for flag, value in pairs(Library.Flags) do
+        if type(value) == 'table' and value.value ~= nil then
+            local hasKey = value.key ~= nil and value.key ~= Enum.KeyCode.Unknown
+            if hasKey then
+                if not self.Rows[flag] then
+                    self:CreateRow(flag, value)
+                end
+                local active = (value.value == true) or (value.mode == 'Always')
+                self:UpdateRow(flag, value, active)
+            else
+                -- No key assigned: hide/remove the row if it exists
+                local entry = self.Rows[flag]
+                if entry then
+                    entry.Row:Destroy()
+                    self.Rows[flag] = nil
                 end
             end
+        end
+    end
+end
 
             local oldOnToggleChange = Library.OnToggleChange
             Library.OnToggleChange = function(name, value)
