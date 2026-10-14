@@ -1,14 +1,15 @@
 local LoadingTick = os.clock()
+
 if getgenv().Library then
     getgenv().Library:Unload()
 end
 
--- Service references - simplified version
+local SCRIPT_VERSION = 'V2'
+
 local serviceCache = {}
 do
     local function initServices()
         local cache = {}
-
         cache.Players = cloneref(game:GetService('Players'))
         cache.RunService = cloneref(game:GetService('RunService'))
         cache.UserInputService = cloneref(game:GetService('UserInputService'))
@@ -62,9 +63,7 @@ do
         function cache.getPing()
             local item = cache.Stats.Network.ServerStatsItem:FindFirstChild('Data Ping')
             if item then
-                local ok, v = pcall(function()
-                    return item:GetValueString()
-                end)
+                local ok, v = pcall(function() return item:GetValueString() end)
                 if ok and v then
                     return (tonumber(v:match('%d+')) or 0) / 1000
                 end
@@ -75,9 +74,7 @@ do
         function cache.getPingMs()
             local item = cache.Stats.Network.ServerStatsItem:FindFirstChild('Data Ping')
             if item then
-                local ok, v = pcall(function()
-                    return item:GetValueString()
-                end)
+                local ok, v = pcall(function() return item:GetValueString() end)
                 if ok and v then
                     return tonumber(v:match('%d+')) or 0
                 end
@@ -98,11 +95,9 @@ do
 
         return cache
     end
-
     serviceCache = initServices()
 end
 
--- Create the library directly
 local Library = (function()
     local Env = getgenv()
 
@@ -172,13 +167,10 @@ local Library = (function()
                 })
                 return item
             end
-
             function bin:destroy()
                 if not (self and self.storage) then return end
                 for _, entry in ipairs(self.storage) do
-                    if entry and entry.destroy then
-                        entry.destroy()
-                    end
+                    if entry and entry.destroy then entry.destroy() end
                 end
                 self.storage = nil
             end
@@ -236,9 +228,7 @@ local Library = (function()
         end
 
         function Utility.GetFiles(folder, extensions)
-            if not isfolder(folder) then
-                makefolder(folder)
-            end
+            if not isfolder(folder) then makefolder(folder) end
             local Files = isfolder(folder) and listfiles(folder) or {}
             local StoredFiles = {}
             local FileNames = {}
@@ -256,9 +246,7 @@ local Library = (function()
         function Utility.Lerp(a, b, c)
             c = c or 0.125
             local offset = math.abs(b - a)
-            if (offset < c) then
-                return b
-            end
+            if (offset < c) then return b end
             return a + (b - a) * c
         end
 
@@ -379,9 +367,7 @@ local Library = (function()
         local function downloadSound(fileName, url)
             local path = soundsPath .. '\\' .. fileName
             if isfile(path) then return true end
-            local success, data = pcall(function()
-                return game:HttpGet(url)
-            end)
+            local success, data = pcall(function() return game:HttpGet(url) end)
             if success and data then
                 writefile(path, data)
                 return true
@@ -424,9 +410,7 @@ local Library = (function()
 
     local Fonts = {
         URL = 'https://raw.githubusercontent.com/luminbot/FontStorage/main/',
-        Names = {
-            'Proggy','ProggyTiny','Minecraftia','SmallestPixel7','Verdana','VerdanaBold','Tahoma','ProggyClean','TahomaXP',
-        },
+        Names = {'Proggy','ProggyTiny','Minecraftia','SmallestPixel7','Verdana','VerdanaBold','Tahoma','ProggyClean','TahomaXP'},
         Data = {},
     }
 
@@ -523,9 +507,7 @@ local Library = (function()
             local fileName = assetName:match('%.([^%.]+)$') and assetName or (assetName .. '.png')
             local filePath = string.format('%s%s', self.AssetsFolder, fileName)
             if isfile(filePath) then
-                local success, asset = pcall(function()
-                    return getcustomasset(filePath)
-                end)
+                local success, asset = pcall(function() return getcustomasset(filePath) end)
                 if success and asset then
                     self.Data[assetName] = asset
                     if not table.find(self.AssetNames, assetName) then
@@ -542,9 +524,7 @@ local Library = (function()
                 end)
                 if success and data then
                     writefile(filePath, data)
-                    local success, asset = pcall(function()
-                        return getcustomasset(filePath)
-                    end)
+                    local success, asset = pcall(function() return getcustomasset(filePath) end)
                     if success and asset then
                         self.Data[assetName] = asset
                         if not table.find(self.AssetNames, assetName) then
@@ -602,6 +582,7 @@ local Library = (function()
     getgenv().Library.AssetLoader = AssetLoader
 
     local Library = {
+        Version = SCRIPT_VERSION,
         TweenSpeed = 0.2,
         TweenStyle = Enum.EasingStyle.Quad,
         ThemeObjects = {},
@@ -628,7 +609,7 @@ local Library = (function()
             period = '.', backslash = '\\', minus = '-', equals = '=', space = 'SPC', ['return'] = 'ENT',
             tab = 'TAB', capslock = 'CAP', leftshift = 'LSH', mousebutton1 = 'MB1', mousebutton2 = 'MB2',
             mousebutton3 = 'MB3', rightshift = 'RSH', leftcontrol = 'CTRL', leftalt = 'ALT',
-            leftsuper = 'WIN', rightcontrol = 'CTRL', rightalt = 'ALT', rightsuper = 'WIN',
+            leftsuper = 'WIN', rightcontrol = 'RC', rightalt = 'ALT', rightsuper = 'WIN',
             insert = 'INS', delete = 'DEL', home = 'HME', pageup = 'PUD', pagedown = 'PDN',
             up = 'UP', down = 'DWN', left = 'LFT', right = 'RGT', numlock = 'NUM',
             numpad0 = 'N0', numpad1 = 'N1', numpad2 = 'N2', numpad3 = 'N3', numpad4 = 'N4',
@@ -646,7 +627,10 @@ local Library = (function()
             Text = Color3.fromRGB(220, 220, 220),
             Outline = Color3.fromRGB(60, 60, 60),
             ['Title Color'] = Color3.fromRGB(0, 134, 229),
+            Risk = Color3.fromRGB(255, 60, 60),
         },
+        -- Binds-specific theme keys are added below in the outer script so they're not shown in the theme colorpicker loop
+        HiddenThemeKeys = {},
         Gradients = {
             Title = { Start = Color3.fromRGB(0, 134, 229), End = Color3.fromRGB(120, 200, 255), Enabled = true, Transparency = 0 },
             Scroll = { Start = Color3.fromRGB(36, 36, 36), End = Color3.fromRGB(36, 36, 36), Enabled = true, Transparency = 0.5 },
@@ -769,6 +753,7 @@ local Library = (function()
                     ['{time}'] = os.date('%H:%M:%S'),
                     ['{date}'] = os.date('%b. %d, %Y'),
                     ['{game}'] = gameName,
+                    ['{version}'] = Library.Version or SCRIPT_VERSION,
                     ['{n}'] = '\n',
                 }
                 for i, v in Triggers do
@@ -783,6 +768,83 @@ local Library = (function()
             DisplayOrder = 1,
             Parent = HiddenUI,
         })
+
+        Library.BlurScreenGui = Utility.New('ScreenGui', {
+            Name = '\0',
+            DisplayOrder = 0,
+            Parent = HiddenUI,
+            IgnoreGuiInset = true,
+        })
+
+        Library.BackgroundFrame = Utility.New('Frame', {
+            Name = 'Background',
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Visible = false,
+            ZIndex = -1,
+            Parent = Library.BlurScreenGui,
+        })
+
+        Library.BlurFrame = Utility.New('Frame', {
+            Name = 'Blur',
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Visible = false,
+            ZIndex = -2,
+            Parent = Library.BlurScreenGui,
+        })
+
+        Library.BlurEffect = Utility.New('BlurEffect', {
+            Name = 'Blur',
+            Size = 0,
+            Parent = Lighting,
+        })
+
+        Library.Background = {
+            DarkEnabled = false,
+            DarkTransparency = 0.5,
+            BlurEnabled = false,
+            BlurSize = 12,
+        }
+
+        function Library.SetDarkBackground(enabled, transparency)
+            Library.Background.DarkEnabled = enabled
+            if transparency ~= nil then
+                Library.Background.DarkTransparency = transparency
+            end
+            Library.BackgroundFrame.Visible = enabled
+            Library.BackgroundFrame.BackgroundTransparency = enabled and Library.Background.DarkTransparency or 1
+        end
+
+        function Library.SetBlurBackground(enabled, size)
+            Library.Background.BlurEnabled = enabled
+            if size ~= nil then
+                Library.Background.BlurSize = size
+            end
+            Library.BlurFrame.Visible = enabled
+            Library.BlurEffect.Enabled = enabled
+            Library.BlurEffect.Size = enabled and Library.Background.BlurSize or 0
+        end
+
+        function Library.SetDarkTransparency(transparency)
+            Library.Background.DarkTransparency = transparency
+            if Library.BackgroundFrame.Visible then
+                Library.BackgroundFrame.BackgroundTransparency = transparency
+            end
+        end
+
+        function Library.SetBlurSize(size)
+            Library.Background.BlurSize = size
+            if Library.BlurEffect.Enabled then
+                Library.BlurEffect.Size = size
+            end
+        end
 
         function Library.Tween(obj, props, tweeninfo)
             tweeninfo = tweeninfo or TweenInfo.new(Library.TweenSpeed, Library.TweenStyle)
@@ -855,6 +917,10 @@ local Library = (function()
                     end
                 end
             end
+            -- Refresh binds overlay whenever a theme changes
+            if Library.Binds and Library.Binds.RefreshTheme then
+                Library.Binds:RefreshTheme()
+            end
         end
 
         function Library.UpdateGradients()
@@ -897,79 +963,172 @@ local Library = (function()
 
         function Library.Resize(holder, box)
             local Start, StartSize, Resizing
-            local CurrentSize = holder.Size
             local OriginalSize = holder.Size
+            local HasMoved = false
+            local Wireframe
+
             Utility.Signal(box.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1
+                or input.UserInputType == Enum.UserInputType.Touch then
                     Resizing = true
+                    HasMoved = false
                     Start = input.Position
                     StartSize = holder.Size
-                end
-            end))
-            Utility.Signal(UserInputService.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and Resizing then
-                    local ViewportSize = Camera.ViewportSize
-                    CurrentSize = UDim2.new(0, math.clamp(StartSize.X.Offset + (input.Position.X - Start.X), OriginalSize.X.Offset, ViewportSize.x), 0, math.clamp(StartSize.Y.Offset + (input.Position.Y - Start.Y), OriginalSize.Y.Offset, ViewportSize.y))
-                    holder.Size = CurrentSize
-                end
-            end))
-            Utility.Signal(UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    Resizing = false
+
+                    local changed, ended
+                    changed = UserInputService.InputChanged:Connect(function(change)
+                        if not Resizing then return end
+                        local t = change.UserInputType
+                        if t ~= Enum.UserInputType.MouseMovement
+                        and t ~= Enum.UserInputType.Touch then return end
+
+                        local delta = change.Position - Start
+                        if not HasMoved and delta.Magnitude > 2 then
+                            HasMoved = true
+                            local pos = holder.AbsolutePosition
+                            local size = holder.AbsoluteSize
+                            Wireframe = Utility.New('Frame', {
+                                Name = 'ResizeWireframe',
+                                Size = UDim2.fromOffset(size.X, size.Y),
+                                Position = UDim2.fromOffset(pos.X, pos.Y),
+                                BackgroundTransparency = 1,
+                                BorderSizePixel = 0,
+                                Parent = Library.ScreenGui,
+                                ZIndex = 99999,
+                            })
+                            Utility.New('UIStroke', {
+                                Name = 'ResizeWireframeStroke',
+                                Color = Library.Theme.Accent,
+                                Thickness = 1,
+                                ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                                Parent = Wireframe,
+                            })
+                            Utility.New('UICorner', {
+                                Name = 'ResizeWireframeCorner',
+                                CornerRadius = UDim.new(0, 5),
+                                Parent = Wireframe,
+                            })
+                        end
+
+                        if HasMoved and Wireframe then
+                            local ViewportSize = Camera.ViewportSize
+                            local newW = math.clamp(
+                                StartSize.X.Offset + delta.X,
+                                OriginalSize.X.Offset,
+                                ViewportSize.x - holder.AbsolutePosition.X
+                            )
+                            local newH = math.clamp(
+                                StartSize.Y.Offset + delta.Y,
+                                OriginalSize.Y.Offset,
+                                ViewportSize.y - holder.AbsolutePosition.Y
+                            )
+                            Wireframe.Size = UDim2.fromOffset(newW, newH)
+                        end
+                    end)
+
+                    ended = UserInputService.InputEnded:Connect(function(endInput)
+                        if endInput.UserInputType ~= Enum.UserInputType.MouseButton1
+                        and endInput.UserInputType ~= Enum.UserInputType.Touch then return end
+                        if not Resizing then return end
+
+                        Resizing = false
+                        if HasMoved and Wireframe then
+                            holder.Size = Wireframe.Size
+                        end
+                        if Wireframe then
+                            Wireframe:Destroy()
+                            Wireframe = nil
+                        end
+                        if changed then changed:Disconnect() end
+                        if ended then ended:Disconnect() end
+                    end)
                 end
             end))
         end
 
         function Library.Dragging(holder, box)
             local Start, StartPos, Dragging
-            local CurrentPos
-            local Inset = GuiService:GetGuiInset()
-            local OriginalTransparencies = {}
+            local HasMoved = false
+            local Wireframe
 
             Utility.Signal(box.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    Dragging = true
-                    Start = input.Position
-                    StartPos = holder.AbsolutePosition
-                    OriginalTransparencies = {}
-                    for _, obj in holder:GetDescendants() do
-                        local idx = Utility.GetTransparency(obj)
-                        if idx then
-                            if type(idx) == 'table' then
-                                for _, prop in idx do
-                                    OriginalTransparencies[obj] = OriginalTransparencies[obj] or {}
-                                    OriginalTransparencies[obj][prop] = obj[prop]
-                                    Library.Tween(obj, { [prop] = math.min(obj[prop] + Library.DragTransparency, 1) })
-                                end
-                            else
-                                OriginalTransparencies[obj] = OriginalTransparencies[obj] or {}
-                                OriginalTransparencies[obj][idx] = obj[idx]
-                                Library.Tween(obj, { [idx] = math.min(obj[idx] + Library.DragTransparency, 1) })
-                            end
-                        end
+                if input.UserInputType ~= Enum.UserInputType.MouseButton1
+                and input.UserInputType ~= Enum.UserInputType.Touch then return end
+
+                Dragging = true
+                HasMoved = false
+                Start = input.Position
+                StartPos = holder.AbsolutePosition
+
+                local changed, ended
+
+                changed = UserInputService.InputChanged:Connect(function(change)
+                    if not Dragging then return end
+                    local t = change.UserInputType
+                    if t ~= Enum.UserInputType.MouseMovement
+                    and t ~= Enum.UserInputType.Touch then return end
+
+                    local delta = change.Position - Start
+                    if not HasMoved and delta.Magnitude > 2 then
+                        HasMoved = true
+                        local pos = holder.AbsolutePosition
+                        local size = holder.AbsoluteSize
+                        Wireframe = Utility.New('Frame', {
+                            Name = 'DragWireframe',
+                            Size = UDim2.fromOffset(size.X, size.Y),
+                            Position = UDim2.fromOffset(pos.X, pos.Y),
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            Parent = Library.ScreenGui,
+                            ZIndex = 99999,
+                        })
+                        Utility.New('UIStroke', {
+                            Name = 'DragWireframeStroke',
+                            Color = Library.Theme.Accent,
+                            Thickness = 1,
+                            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                            Parent = Wireframe,
+                        })
+                        Utility.New('UICorner', {
+                            Name = 'DragWireframeCorner',
+                            CornerRadius = UDim.new(0, 5),
+                            Parent = Wireframe,
+                        })
                     end
-                end
-            end))
-            Utility.Signal(UserInputService.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
-                    local MaxSize = holder.AbsoluteSize
-                    local ViewportSize = Camera.ViewportSize
-                    CurrentPos = UDim2.new(0, math.clamp(StartPos.X + (input.Position.X - Start.X), 0, ViewportSize.x - MaxSize.x), 0, math.clamp(StartPos.Y + (input.Position.Y - Start.Y + 36), 0, ViewportSize.y - MaxSize.y) + (Inset.Y / 2))
-                    holder.Position = CurrentPos
-                end
-            end))
-            Utility.Signal(UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 and Dragging then
+
+                    if HasMoved and Wireframe then
+                        local MaxSize = holder.AbsoluteSize
+                        local ViewportSize = Camera.ViewportSize
+                        local newX = math.clamp(
+                            StartPos.X + delta.X,
+                            0,
+                            ViewportSize.x - MaxSize.x
+                        )
+                        local newY = math.clamp(
+                            StartPos.Y + delta.Y,
+                            0,
+                            ViewportSize.y - MaxSize.y
+                        )
+                        Wireframe.Position = UDim2.fromOffset(newX, newY)
+                    end
+                end)
+
+                ended = UserInputService.InputEnded:Connect(function(endInput)
+                    if endInput.UserInputType ~= Enum.UserInputType.MouseButton1
+                    and endInput.UserInputType ~= Enum.UserInputType.Touch then return end
+                    if not Dragging then return end
+
                     Dragging = false
-                    for obj, props in pairs(OriginalTransparencies) do
-                        if obj and obj.Parent then
-                            for prop, val in pairs(props) do
-                                Library.Tween(obj, { [prop] = val })
-                            end
-                        end
+                    if HasMoved and Wireframe then
+                        holder.Position = Wireframe.Position
                     end
-                    OriginalTransparencies = {}
-                end
+                    if Wireframe then
+                        Wireframe:Destroy()
+                        Wireframe = nil
+                    end
+                    if changed then changed:Disconnect() end
+                    if ended then ended:Disconnect() end
+                end)
             end))
         end
 
@@ -1394,6 +1553,7 @@ local Library = (function()
                 Popup.SlidingAlpha = true
                 Popup.SlideAlpha({ Position = UserInputService:GetMouseLocation() })
             end))
+
             Utility.Signal(UserInputService.InputChanged:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseMovement then
                     if Popup.SlidingSaturation then
@@ -1407,6 +1567,7 @@ local Library = (function()
                     end
                 end
             end))
+
             Utility.Signal(UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     Popup.SlidingSaturation, Popup.SlidingHue, Popup.SlidingAlpha = false, false, false
@@ -1428,6 +1589,13 @@ local Library = (function()
                 size = UDim2.fromOffset(350, 430),
                 open = true,
                 fontsize = 15,
+                showBottomBar = true,
+                gameName = nil,
+                version = SCRIPT_VERSION,
+                darkBackground = false,
+                blurBackground = false,
+                darkTransparency = 0.5,
+                blurSize = 12,
             })
 
             local Window = {
@@ -1437,9 +1605,33 @@ local Library = (function()
                 TabsTweening = false,
                 ZIndex = 0,
                 Tabs = {},
+                Version = cfg.version or SCRIPT_VERSION,
             }
             local ZIndex = Window.ZIndex
             local Objects = Window.Objects
+
+            local resolvedGameName = cfg.gameName
+            if not resolvedGameName then
+                local ok, info = pcall(function()
+                    return game:GetService('MarketplaceService'):GetProductInfo(game.PlaceId, Enum.InfoType.Asset)
+                end)
+                if ok and info and info.Name then
+                    resolvedGameName = info.Name
+                else
+                    resolvedGameName = GameName ~= '' and GameName or 'Universal'
+                end
+            end
+            Window.GameName = resolvedGameName
+
+            local BottomBarHeight = cfg.showBottomBar and 22 or 0
+            Window.BottomBarHeight = BottomBarHeight
+
+            if cfg.darkBackground then
+                Library.SetDarkBackground(true, cfg.darkTransparency)
+            end
+            if cfg.blurBackground then
+                Library.SetBlurBackground(true, cfg.blurSize)
+            end
 
             do
                 Objects.ScreenGui = Utility.New('ScreenGui', {
@@ -1447,6 +1639,7 @@ local Library = (function()
                     Parent = HiddenUI,
                     IgnoreGuiInset = true,
                 })
+
                 Objects.Outline = Utility.New('Frame', {
                     Name = 'Outline',
                     Size = cfg.size,
@@ -1468,7 +1661,7 @@ local Library = (function()
 
                 Objects.SideContainer = Utility.New('Frame', {
                     Name = 'SideContainer',
-                    Size = UDim2.new(0, 162, 1, 0),
+                    Size = UDim2.new(0, 162, 1, -BottomBarHeight),
                     Position = UDim2.fromOffset(0, 0),
                     BorderSizePixel = 0,
                     Parent = Objects.Outline,
@@ -1512,6 +1705,7 @@ local Library = (function()
                 })
 
                 ZIndex = ZIndex + 1
+
                 Objects.Title = Utility.New('TextLabel', {
                     Name = 'Title',
                     TextStrokeTransparency = 0.8,
@@ -1598,9 +1792,63 @@ local Library = (function()
 
                 Library.Resize(Objects.Outline, Objects.ResizeBar)
 
+                Objects.BottomBar = Utility.New('Frame', {
+                    Name = 'BottomBar',
+                    Size = UDim2.new(1, 0, 0, BottomBarHeight),
+                    Position = UDim2.new(0, 0, 1, -BottomBarHeight),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Parent = Objects.Outline,
+                    ZIndex = 100,
+                    Visible = cfg.showBottomBar,
+                    ClipsDescendants = true,
+                })
+
+                Objects.BottomBarLine = Utility.New('Frame', {
+                    Name = 'BottomBarLine',
+                    Size = UDim2.new(1, 0, 0, 1),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    BorderSizePixel = 0,
+                    Parent = Objects.BottomBar,
+                    ZIndex = 101,
+                }, { BackgroundColor3 = 'Outline' })
+
+                Objects.BottomBarGame = Utility.New('TextLabel', {
+                    Name = 'GameName',
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0.5, -8, 1, 0),
+                    Position = UDim2.new(0, 8, 0, 0),
+                    TextSize = Library.FontSize - 2,
+                    FontFace = Library.Font,
+                    Text = resolvedGameName,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    Parent = Objects.BottomBar,
+                    ZIndex = 102,
+                }, { TextColor3 = 'Text' })
+
+                Objects.BottomBarVersion = Utility.New('TextLabel', {
+                    Name = 'Version',
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0.5, -8, 1, 0),
+                    Position = UDim2.new(0.5, 0, 0, 0),
+                    TextSize = Library.FontSize - 2,
+                    FontFace = Library.Font,
+                    Text = cfg.version or SCRIPT_VERSION,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                    Parent = Objects.BottomBar,
+                    ZIndex = 102,
+                }, { TextColor3 = 'Accent' })
+
+                Window.BottomBar = Objects.BottomBar
+                Window.BottomBarGame = Objects.BottomBarGame
+                Window.BottomBarVersion = Objects.BottomBarVersion
+
                 Objects.PageHolder = Utility.New('Frame', {
                     Name = 'PageHolder',
-                    Size = UDim2.new(1, -Objects.SideContainer.AbsoluteSize.X, 1, 0),
+                    Size = UDim2.new(1, -Objects.SideContainer.AbsoluteSize.X, 1, -BottomBarHeight),
                     Position = UDim2.new(0, Objects.SideContainer.AbsoluteSize.X, 0, 0),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
@@ -1619,10 +1867,44 @@ local Library = (function()
 
                 Window.PageHolder = Objects.PageHolder
                 ZIndex = ZIndex + 1
+
+                Utility.Signal(Objects.Outline:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
+                    Objects.SideContainer.Size = UDim2.new(0, 162, 1, -BottomBarHeight)
+                    Objects.PageHolder.Size = UDim2.new(
+                        1, -Objects.SideContainer.AbsoluteSize.X,
+                        1, -BottomBarHeight
+                    )
+                end))
             end
 
             Window.ZIndex = ZIndex
             local AnimationSizeAmount = 20
+
+            function Window.SetGameName(name)
+                Window.GameName = name
+                if Objects.BottomBarGame then
+                    Objects.BottomBarGame.Text = name
+                end
+            end
+
+            function Window.SetVersion(ver)
+                Window.Version = ver
+                if Objects.BottomBarVersion then
+                    Objects.BottomBarVersion.Text = ver
+                end
+            end
+
+            function Window.SetBottomBarVisible(vis)
+                if Objects.BottomBar then
+                    Objects.BottomBar.Visible = vis
+                end
+                local h = vis and (Window.BottomBarHeight or 22) or 0
+                Objects.SideContainer.Size = UDim2.new(0, 162, 1, -h)
+                Objects.PageHolder.Size = UDim2.new(
+                    1, -Objects.SideContainer.AbsoluteSize.X,
+                    1, -h
+                )
+            end
 
             function Window.Open()
                 if Window.Tweening then return end
@@ -1640,6 +1922,13 @@ local Library = (function()
                 Window.Tweening = true
                 Window.Visible = not Window.Visible
                 if Window.Visible then Objects.Outline.Visible = true end
+                if Library.Background.DarkEnabled then
+                    Library.BackgroundFrame.Visible = Window.Visible
+                end
+                if Library.Background.BlurEnabled then
+                    Library.BlurFrame.Visible = Window.Visible
+                    Library.BlurEffect.Enabled = Window.Visible
+                end
                 for _, obj in Objects.ScreenGui:GetDescendants() do
                     local Index = Utility.GetTransparency(obj)
                     if Index then
@@ -1663,6 +1952,19 @@ local Library = (function()
                     Objects.Outline.Visible = Window.Visible
                 end))
             end
+
+            Utility.Signal(Objects.Outline:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
+                task.spawn(function()
+                    for i = 1, 6 do
+                        task.wait(0.03)
+                        for _, tab in Window.Tabs do
+                            for _, fn in ipairs(tab.RefreshFillSections or {}) do
+                                pcall(fn)
+                            end
+                        end
+                    end
+                end)
+            end))
 
             Library.Window = Window
             return setmetatable(Window, Library)
@@ -1848,7 +2150,7 @@ local Library = (function()
                     Parent = Objects.Left,
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
-                    VerticalFlex = Enum.UIFlexAlignment.Fill,
+                    VerticalFlex = Enum.UIFlexAlignment.None,
                     Padding = UDim.new(0, 8),
                 })
 
@@ -1870,11 +2172,12 @@ local Library = (function()
                     Parent = Objects.Right,
                     FillDirection = Enum.FillDirection.Vertical,
                     SortOrder = Enum.SortOrder.LayoutOrder,
-                    VerticalFlex = Enum.UIFlexAlignment.Fill,
+                    VerticalFlex = Enum.UIFlexAlignment.None,
                     Padding = UDim.new(0, 8),
                 })
 
                 Tab.right = Objects.Right
+                Tab.RefreshFillSections = {}
             end
 
             Tab.ZIndex = ZIndex
@@ -1925,6 +2228,16 @@ local Library = (function()
                         end))
                     end
                 end
+                if status then
+                    task.spawn(function()
+                        for i = 1, 10 do
+                            task.wait(0.05)
+                            for _, fn in ipairs(Tab.RefreshFillSections or {}) do
+                                pcall(fn)
+                            end
+                        end
+                    end)
+                end
             end
 
             Utility.Signal(Objects.Background.MouseEnter:Connect(function()
@@ -1969,6 +2282,7 @@ local Library = (function()
                 autoResize = true,
                 minHeight = 80,
                 maxHeight = 400,
+                fill = true,
             })
 
             local Section = {
@@ -1977,6 +2291,8 @@ local Library = (function()
                 Resizing = false,
                 Dragging = false,
                 ContentHeight = 0,
+                AutoResize = cfg.autoResize,
+                Fill = cfg.fill,
             }
 
             local Parent = self[cfg.side:lower()]
@@ -2039,6 +2355,12 @@ local Library = (function()
                     MinSize = Vector2.new(0, cfg.minHeight),
                     MaxSize = Vector2.new(math.huge, cfg.maxHeight),
                 })
+
+                if not cfg.autoResize then
+                    Objects.Constraint.MinSize = Vector2.new(0, cfg.minHeight)
+                    Objects.Constraint.MaxSize = Vector2.new(math.huge, cfg.maxHeight)
+                    Objects.MainOutline.Size = UDim2.new(1, 0, 0, cfg.minHeight)
+                end
 
                 ZIndex = ZIndex + 1
 
@@ -2223,6 +2545,7 @@ local Library = (function()
                         end
                     end
                 end))
+
                 Utility.Signal(Objects.Scrolling:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
                     if Objects.Scrolling.AbsoluteCanvasSize.Y > Objects.Scrolling.AbsoluteSize.Y then
                         Objects.Content.Size = UDim2.new(1, -7, 0, 0)
@@ -2246,6 +2569,95 @@ local Library = (function()
             end
 
             Section.ZIndex = ZIndex
+
+            Objects.MainOutline:SetAttribute('LibraryFillSection', (cfg.fill and not cfg.autoResize) or false)
+            Objects.MainOutline:SetAttribute('LibraryAutoResize', cfg.autoResize)
+
+            local function RefreshFill()
+                if not Parent or not Parent.Parent then return end
+
+                local Layout = Parent:FindFirstChildOfClass('UIListLayout')
+                if not Layout then return end
+
+                local sections = {}
+                for _, child in ipairs(Parent:GetChildren()) do
+                    if child:IsA('Frame') and child.Name == 'MainOutline' then
+                        table.insert(sections, child)
+                    end
+                end
+                if #sections == 0 then return end
+
+                local padding = Layout.Padding.Offset
+                local totalPad = padding * math.max(0, #sections - 1)
+
+                local fixedHeight = 0
+                local fillSections = {}
+                for _, sec in ipairs(sections) do
+                    if sec:GetAttribute('LibraryFillSection') then
+                        table.insert(fillSections, sec)
+                    else
+                        local h = sec.AbsoluteSize.Y
+                        if h <= 0 then
+                            local c = sec:FindFirstChildOfClass('UISizeConstraint')
+                            if c then h = c.MinSize.Y end
+                        end
+                        fixedHeight = fixedHeight + h
+                    end
+                end
+
+                if #fillSections == 0 then return end
+
+                local available = Parent.AbsoluteSize.Y - totalPad - fixedHeight
+                if available < 0 then available = 0 end
+
+                local each = math.floor(available / #fillSections)
+                if each < 30 then each = 30 end
+
+                for _, sec in ipairs(fillSections) do
+                    local constraint = sec:FindFirstChildOfClass('UISizeConstraint')
+                    if constraint then
+                        constraint.MinSize = Vector2.new(0, each)
+                        constraint.MaxSize = Vector2.new(math.huge, each)
+                    end
+                    sec.Size = UDim2.new(1, 0, 0, each)
+                end
+            end
+
+            Section.RefreshFill = RefreshFill
+            Section.Parent = Parent
+
+            if self.RefreshFillSections then
+                table.insert(self.RefreshFillSections, RefreshFill)
+            end
+
+            if not Parent:GetAttribute('LibraryFillHooked') then
+                Parent:SetAttribute('LibraryFillHooked', true)
+                Utility.Signal(Parent:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
+                    for _, fn in ipairs(self.RefreshFillSections or {}) do
+                        pcall(fn)
+                    end
+                end))
+                Utility.Signal(Parent.ChildAdded:Connect(function()
+                    task.defer(function()
+                        for _, fn in ipairs(self.RefreshFillSections or {}) do
+                            pcall(fn)
+                        end
+                    end)
+                end))
+                Utility.Signal(Parent.ChildRemoved:Connect(function()
+                    task.defer(function()
+                        for _, fn in ipairs(self.RefreshFillSections or {}) do
+                            pcall(fn)
+                        end
+                    end)
+                end))
+            end
+
+            task.defer(function()
+                for _, fn in ipairs(self.RefreshFillSections or {}) do
+                    pcall(fn)
+                end
+            end)
 
             Utility.Signal(Objects.ResizeBar.MouseButton1Down:Connect(function()
                 Section.Resizing = true
@@ -2339,6 +2751,11 @@ local Library = (function()
                             Objects.MainOutline.Parent = Section.OldParent
                         end
                         if Indicator then Indicator:Destroy() end
+                        task.defer(function()
+                            for _, fn in ipairs(self.RefreshFillSections or {}) do
+                                pcall(fn)
+                            end
+                        end)
                     end
                 end))
             end))
@@ -2640,7 +3057,6 @@ local Library = (function()
             return Popup
         end
 
-        -- Toggle
         function Library.Toggle(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -2650,6 +3066,7 @@ local Library = (function()
                 callback = function() end,
                 flag = nil,
                 children = nil,
+                risky = false,
             })
 
             if not cfg.flag then
@@ -2661,6 +3078,7 @@ local Library = (function()
                 Tweening = false,
                 ZIndex = self.ZIndex,
                 Value = false,
+                Risky = cfg.risky,
             }
             local ZIndex = Toggle.ZIndex
             local Objects = Toggle.Objects
@@ -2770,7 +3188,7 @@ local Library = (function()
                     TextYAlignment = Enum.TextYAlignment.Center,
                     Parent = Objects.Line,
                     ZIndex = ZIndex,
-                }, { TextColor3 = 'Dark Text' })
+                }, { TextColor3 = cfg.risky and 'Risk' or 'Dark Text' })
 
                 Utility.New('UIListLayout', {
                     Name = 'UIListLayout',
@@ -2889,7 +3307,7 @@ local Library = (function()
                     Objects.ChildrenHolder.Visible = visibility
                 end))
             end
-            
+
             function Toggle.Set(value)
                 if Toggle.Tweening then return end
                 Toggle.Value = value
@@ -2901,7 +3319,7 @@ local Library = (function()
                     end
                 end
                 Library.ChangeObjectTheme(Objects.Text, {
-                    TextColor3 = value and 'Text' or 'Dark Text',
+                    TextColor3 = value and 'Text' or (cfg.risky and 'Risk' or 'Dark Text'),
                 }, true)
                 cfg.callback(value)
                 Library.Flags[cfg.flag] = value
@@ -2909,7 +3327,7 @@ local Library = (function()
                     Library.OnToggleChange(cfg.name, value)
                 end
             end
-            
+
             function Toggle.Enable()
                 Toggle.Set(not Toggle.Value)
             end
@@ -2921,7 +3339,6 @@ local Library = (function()
             return setmetatable(Toggle, Library)
         end
 
-        -- Divider
         function Library.Divider(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3004,7 +3421,6 @@ local Library = (function()
             return setmetatable(Divider, Library)
         end
 
-        -- Slider
         function Library.Slider(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3296,6 +3712,7 @@ local Library = (function()
                 autosize = false,
                 gradient = false,
                 callback = function() end,
+                risky = false,
             })
 
             local Button = {
@@ -3303,6 +3720,7 @@ local Library = (function()
                 ZIndex = self.ZIndex,
                 Time = 0,
                 Objects = {},
+                Risky = cfg.risky,
             }
             local ZIndex = Button.ZIndex
             local Objects = Button.Objects
@@ -3371,7 +3789,7 @@ local Library = (function()
                     TextStrokeTransparency = 0.8,
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
-                }, { TextColor3 = 'Dark Text' })
+                }, { TextColor3 = cfg.risky and 'Risk' or 'Dark Text' })
                 Objects.Text.Size = UDim2.new(cfg.autosize and 0 or 1, cfg.autosize and Objects.Text.TextBounds.X or 0, 0, Objects.Text.TextBounds.Y - 2)
             end
 
@@ -3390,7 +3808,7 @@ local Library = (function()
                         else
                             Objects.Text.Text = cfg.name
                             if Button.Clicked then
-                                Library.ChangeObjectTheme(Objects.Text, { TextColor3 = 'Dark Text' }, true)
+                                Library.ChangeObjectTheme(Objects.Text, { TextColor3 = cfg.risky and 'Risk' or 'Dark Text' }, true)
                                 Button.Clicked = false
                             end
                             break
@@ -3403,7 +3821,7 @@ local Library = (function()
             function Button.Click()
                 if cfg.confirm then
                     if Button.Clicked then
-                        Library.ChangeObjectTheme(Objects.Text, { TextColor3 = 'Dark Text' }, true)
+                        Library.ChangeObjectTheme(Objects.Text, { TextColor3 = cfg.risky and 'Risk' or 'Dark Text' }, true)
                         coroutine.close(Button.Coroutine)
                         Objects.Text.Text = cfg.name
                         Button.Clicked = false
@@ -3416,7 +3834,7 @@ local Library = (function()
                     cfg.callback()
                     Library.ChangeObjectTheme(Objects.Text, { TextColor3 = 'Accent' }, true)
                     task.wait(Library.TweenSpeed)
-                    Library.ChangeObjectTheme(Objects.Text, { TextColor3 = 'Dark Text' }, true)
+                    Library.ChangeObjectTheme(Objects.Text, { TextColor3 = cfg.risky and 'Risk' or 'Dark Text' }, true)
                 end
             end
 
@@ -4447,6 +4865,9 @@ local Library = (function()
             Utility.Signal(Objects.TextBox.FocusLost:Connect(function()
                 Textbox.Set(Objects.TextBox.Text)
             end))
+            Utility.Signal(Objects.TextBox:GetPropertyChangedSignal('Text'):Connect(function()
+                Library.Flags[cfg.flag] = Objects.TextBox.Text
+            end))
             Textbox.Set(cfg.value)
             Library.ConfigFlags[cfg.flag] = Textbox.Set
             return setmetatable(Textbox, Library)
@@ -4737,9 +5158,13 @@ local Library = (function()
                 end
                 local Type = typeof(value)
                 if Type == 'EnumItem' then
-                    Keybind.Key = value
-                    value = (value == Enum.KeyCode.Unknown and 'None' or value.Name)
-                    Popup.Key.Text = Library.KeyConverters[value:lower()] or value
+                Keybind.Key = value
+                if value == Enum.KeyCode.Unknown then
+                 Popup.Key.Text = '...'
+                 else
+                 value = value.Name
+                 Popup.Key.Text = Library.KeyConverters[value:lower()] or value
+                 end
                     Library.Tween(Popup.KeyOutline, {
                         Size = UDim2.new(0, Popup.Key.TextBounds.X + 10, 0, Popup.Text.AbsoluteSize.Y),
                     })
@@ -4891,6 +5316,7 @@ local Library = (function()
                 name = 'New Label',
                 bold = true,
                 dark = false,
+                risky = false,
             })
 
             local Label = { Objects = {}, ZIndex = self.ZIndex }
@@ -4930,7 +5356,7 @@ local Library = (function()
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
-                }, { TextColor3 = cfg.dark and 'Light Text' or 'Text' })
+                }, { TextColor3 = cfg.risky and 'Risk' or (cfg.dark and 'Light Text' or 'Text') })
                 Utility.New('UIListLayout', {
                     Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
@@ -5017,7 +5443,6 @@ local Library = (function()
                     Position = UDim2.new(0, 0, 1, 0),
                     Parent = Objects.Holder,
                     ZIndex = ZIndex,
-                    BackgroundTransparency = 0.1,
                 }, { BackgroundColor3 = 'Inline' })
                 Utility.New('UICorner', {
                     Name = 'UICorner',
@@ -5032,7 +5457,6 @@ local Library = (function()
                     Position = UDim2.fromOffset(1, 1),
                     Parent = Objects.Outline,
                     ZIndex = ZIndex,
-                    BackgroundTransparency = 0.1,
                 }, { BackgroundColor3 = 'Background' })
                 Utility.New('UIPadding', {
                     Name = 'UIPadding',
@@ -5171,11 +5595,13 @@ local Library = (function()
         function Library.Watermark(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
-                text = 'Library | {game} | {time} | {date}',
-                visible = true,
-                rate = 1.6666666666666665E-2,
+                visible = false,
+                rate = 0.2,
                 attached = false,
                 defaultPosition = UDim2.new(0, 10, 0, 0),
+                scriptName = 'richard',
+                scriptNameColor = nil,
+                version = SCRIPT_VERSION,
             })
 
             local ZIndex = 100
@@ -5183,7 +5609,6 @@ local Library = (function()
                 Objects = {},
                 Visible = cfg.visible,
                 Rate = cfg.rate,
-                Text = cfg.text,
                 ZIndex = ZIndex,
                 Clock = os.clock(),
                 Attached = cfg.attached,
@@ -5191,8 +5616,58 @@ local Library = (function()
                 DragStart = nil,
                 DragOrigin = nil,
                 Position = cfg.defaultPosition,
+                ScriptName = cfg.scriptName,
+                ScriptNameColor = cfg.scriptNameColor,
+                Version = cfg.version,
             }
             local Objects = Watermark.Objects
+            local overrideScriptNameColor = cfg.scriptNameColor ~= nil
+
+            local function ColorToHex(color)
+                return string.format('%02x%02x%02x',
+                    math.floor(color.R * 255 + 0.5),
+                    math.floor(color.G * 255 + 0.5),
+                    math.floor(color.B * 255 + 0.5))
+            end
+
+            local function GetScriptNameColor()
+                if overrideScriptNameColor then
+                    return Watermark.ScriptNameColor
+                end
+                return Library.Theme.Accent
+            end
+
+            local function GetPingMs()
+                local item = Stats.Network.ServerStatsItem:FindFirstChild('Data Ping')
+                if item then
+                    local ok, v = pcall(function() return item:GetValueString() end)
+                    if ok and v then
+                        return tonumber(v:match('%d+')) or 0
+                    end
+                end
+                return 0
+            end
+
+            local function GetTime12h()
+                local hour24 = tonumber(os.date('%H')) or 0
+                local minute = os.date('%M')
+                local suffix = (hour24 < 12) and 'AM' or 'PM'
+                local hour12 = hour24 % 12
+                if hour12 == 0 then hour12 = 12 end
+                return string.format('%02d:%s %s', hour12, minute, suffix)
+            end
+
+            local function BuildRichText()
+                local accentHex = ColorToHex(GetScriptNameColor())
+                local lightHex = ColorToHex(Library.Theme['Light Text'])
+                local textHex = ColorToHex(Library.Theme.Text)
+                return string.format(
+                    '<font color="#%s">%s</font> <font color="#%s">(%s)</font> <font color="#%s">/ %d ms / %s</font>',
+                    accentHex, Watermark.ScriptName,
+                    lightHex, Watermark.Version,
+                    textHex, GetPingMs(), GetTime12h()
+                )
+            end
 
             do
                 Objects.Outline = Utility.New('Frame', {
@@ -5203,6 +5678,7 @@ local Library = (function()
                     Position = cfg.defaultPosition,
                     Parent = Library.ScreenGui,
                     ZIndex = ZIndex,
+                    Visible = cfg.visible,
                 }, { BackgroundColor3 = 'Inline' })
                 Utility.New('UICorner', {
                     Name = 'UICorner',
@@ -5242,7 +5718,8 @@ local Library = (function()
                     FontFace = Library.Font,
                     Size = UDim2.new(0, 0, 0, 0),
                     Position = UDim2.new(0, 0, 0, 0),
-                    Text = Watermark.Text,
+                    RichText = true,
+                    Text = '',
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Text' })
@@ -5260,9 +5737,18 @@ local Library = (function()
             end
             Watermark.ZIndex = ZIndex
 
-            function Watermark.SetText(text) Watermark.Text = text end
             function Watermark.SetVisible(visibility) Watermark.Visible = visibility end
             function Watermark.SetRate(rate) Watermark.Rate = rate end
+            function Watermark.SetScriptName(name) Watermark.ScriptName = name end
+            function Watermark.SetVersion(v) Watermark.Version = v end
+            function Watermark.SetScriptNameColor(color)
+                if color == nil then
+                    overrideScriptNameColor = false
+                else
+                    overrideScriptNameColor = true
+                    Watermark.ScriptNameColor = color
+                end
+            end
             function Watermark.SetAttached(attached)
                 Watermark.Attached = attached
                 if attached then
@@ -5325,7 +5811,7 @@ local Library = (function()
                 end
                 if Watermark.Visible and os.clock() - Watermark.Clock >= Watermark.Rate then
                     Watermark.Clock = os.clock()
-                    Objects.Text.Text = Utility.TextTriggers(Watermark.Text)
+                    Objects.Text.Text = BuildRichText()
                     Objects.Text.Size = UDim2.new(0, 0, 0, Objects.Text.TextBounds.Y - 2)
                 end
             end
@@ -5342,11 +5828,11 @@ local Library = (function()
         function Library.BindsOverlay(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
-                name = 'Binds',
+                name = 'Hotkeys',
                 icon = 'rbxassetid://81471583706380',
                 position = UDim2.new(0, 20, 0.5, -100),
                 visible = true,
-                width = 240,
+                width = 200,
             })
 
             local Binds = {
@@ -5358,17 +5844,71 @@ local Library = (function()
                 DragStart = nil,
                 DragOrigin = nil,
                 Colors = {
-                    HeaderBackground = Color3.fromRGB(15, 15, 15),
-                    HeaderStroke = Color3.fromRGB(60, 60, 60),
-                    Title = Color3.fromRGB(255, 255, 255),
-                    Icon = Color3.fromRGB(255, 255, 255),
-                    RowName = Color3.fromRGB(120, 120, 120),
-                    RowActive = Color3.fromRGB(255, 255, 255),
-                    RowKey = Color3.fromRGB(160, 160, 160),
+                    -- Header
+                    HeaderBackground            = 'Binds Header Background',
+                    HeaderTransparency          = 0,
+                    Title                       = 'Binds Header Title',
+                    TitleTransparency           = 0,
+                    Icon                        = 'Binds Header Icon',
+                    IconTransparency            = 0,
+
+                    -- Row inactive
+                    RowBackground               = 'Binds Row Background',
+                    RowTransparency             = 0.95,
+                    RowName                     = 'Binds Row Name',
+                    NameTransparency            = 0,
+                    RowKey                      = 'Binds Row Key',
+                    KeyTransparency             = 0,
+                    RowMode                     = 'Binds Row Mode',
+                    ModeTransparency            = 0,
+
+                    -- Row active
+                    RowActiveBackground         = 'Binds Row Active Background',
+                    RowActiveTransparency       = 0.95,
+                    RowActiveName               = 'Binds Row Active Name',
+                    RowActiveNameTransparency   = 0,
+                    RowActiveKey                = 'Binds Row Active Key',
+                    RowActiveKeyTransparency    = 0,
+                    RowActiveMode               = 'Binds Row Active Mode',
+                    RowActiveModeTransparency   = 0,
+
+                    -- Text outline
+                    TextOutline                 = 'Binds Text Outline',
+                    TextOutlineTransparency     = 0,
                 },
             }
+
+            local function Resolve(v)
+                if type(v) == 'string' and Library.Theme[v] then
+                    return Library.Theme[v]
+                elseif type(v) == 'function' then
+                    return v()
+                end
+                return v
+            end
+            Binds.Resolve = Resolve
+
             local ZIndex = Binds.ZIndex
             local Objects = Binds.Objects
+
+            local function FormatKey(key)
+    if not key or key == Enum.KeyCode.Unknown then return '...' end
+    if typeof(key) == 'EnumItem' then
+        return Library.KeyConverters[key.Name:lower()] or key.Name
+    end
+    return tostring(key)
+end
+
+            local function AddTextOutline(label)
+                return Utility.New('UIStroke', {
+                    Name = 'TextOutline',
+                    Parent = label,
+                    Color = Resolve(Binds.Colors.TextOutline),
+                    Thickness = 1,
+                    Transparency = Binds.Colors.TextOutlineTransparency,
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
+                })
+            end
 
             Objects.ScreenGui = Utility.New('ScreenGui', {
                 Name = 'BindsOverlay',
@@ -5395,60 +5935,41 @@ local Library = (function()
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 HorizontalAlignment = Enum.HorizontalAlignment.Left,
                 Parent = Objects.Root,
-                Padding = UDim.new(0, 4),
+                Padding = UDim.new(0, 3),
             })
 
             Objects.HeaderContainer = Utility.New('Frame', {
                 Name = 'HeaderContainer',
-                Size = UDim2.new(0, 0, 0, 24),
-                AutomaticSize = Enum.AutomaticSize.X,
-                BackgroundColor3 = Binds.Colors.HeaderBackground,
-                BackgroundTransparency = 0.15,
+                Size = UDim2.new(1, 0, 0, 22),
+                BackgroundColor3 = Resolve(Binds.Colors.HeaderBackground),
+                BackgroundTransparency = Binds.Colors.HeaderTransparency,
                 BorderSizePixel = 0,
                 Parent = Objects.Root,
                 ZIndex = ZIndex + 1,
                 LayoutOrder = 0,
             })
-
             Utility.New('UICorner', {
                 Name = 'UICorner',
                 Parent = Objects.HeaderContainer,
-                CornerRadius = UDim.new(0, 5),
+                CornerRadius = UDim.new(0, 4),
             })
-
-            Objects.HeaderStroke = Utility.New('UIStroke', {
-                Name = 'HeaderStroke',
-                Parent = Objects.HeaderContainer,
-                Color = Binds.Colors.HeaderStroke,
-                Thickness = 1,
-                Transparency = 0.3,
-            })
-
-            Utility.New('UIPadding', {
-                Name = 'UIPadding',
-                Parent = Objects.HeaderContainer,
-                PaddingLeft = UDim.new(0, 8),
-                PaddingRight = UDim.new(0, 10),
-                PaddingTop = UDim.new(0, 4),
-                PaddingBottom = UDim.new(0, 4),
-            })
-
             Utility.New('UIListLayout', {
                 Name = 'UIListLayout',
                 FillDirection = Enum.FillDirection.Horizontal,
                 SortOrder = Enum.SortOrder.LayoutOrder,
-                HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 VerticalAlignment = Enum.VerticalAlignment.Center,
                 Parent = Objects.HeaderContainer,
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, 5),
             })
 
             Objects.Icon = Utility.New('ImageLabel', {
                 Name = 'Icon',
-                Size = UDim2.new(0, 14, 0, 14),
+                Size = UDim2.new(0, 12, 0, 12),
                 BackgroundTransparency = 1,
                 Image = cfg.icon,
-                ImageColor3 = Binds.Colors.Icon,
+                ImageColor3 = Resolve(Binds.Colors.Icon),
+                ImageTransparency = Binds.Colors.IconTransparency,
                 LayoutOrder = 1,
                 Parent = Objects.HeaderContainer,
                 ZIndex = ZIndex + 1,
@@ -5459,8 +5980,9 @@ local Library = (function()
                 Text = cfg.name,
                 TextSize = Library.FontSize,
                 FontFace = Library.Font,
-                TextColor3 = Binds.Colors.Title,
-                TextStrokeTransparency = 0.8,
+                TextColor3 = Resolve(Binds.Colors.Title),
+                TextTransparency = Binds.Colors.TitleTransparency,
+                TextStrokeTransparency = 1,
                 BackgroundTransparency = 1,
                 Size = UDim2.new(0, 0, 1, 0),
                 AutomaticSize = Enum.AutomaticSize.X,
@@ -5470,6 +5992,7 @@ local Library = (function()
                 Parent = Objects.HeaderContainer,
                 ZIndex = ZIndex + 1,
             })
+            Objects.TitleOutline = AddTextOutline(Objects.Title)
 
             Utility.Signal(Objects.HeaderContainer.InputBegan:Connect(function(input)
                 if input.UserInputType ~= Enum.UserInputType.MouseButton1
@@ -5511,19 +6034,33 @@ local Library = (function()
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 HorizontalAlignment = Enum.HorizontalAlignment.Left,
                 Parent = Objects.RowsContainer,
-                Padding = UDim.new(0, 0),
+                Padding = UDim.new(0, 3),
             })
 
             function Binds:CreateRow(flag, data)
                 if self.Rows[flag] then return self.Rows[flag] end
 
+                local C = Binds.Colors
+
                 local Row = Utility.New('Frame', {
                     Name = 'Row_' .. flag,
-                    Size = UDim2.new(1, 0, 0, 16),
-                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 22),
+                    BackgroundColor3 = Resolve(C.RowBackground),
+                    BackgroundTransparency = C.RowTransparency,
                     BorderSizePixel = 0,
                     Parent = Objects.RowsContainer,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
+                })
+                Utility.New('UICorner', {
+                    Name = 'UICorner',
+                    Parent = Row,
+                    CornerRadius = UDim.new(0, 4),
+                })
+                Utility.New('UIPadding', {
+                    Name = 'UIPadding',
+                    Parent = Row,
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
                 })
                 Utility.New('UIListLayout', {
                     Name = 'UIListLayout',
@@ -5532,7 +6069,7 @@ local Library = (function()
                     HorizontalAlignment = Enum.HorizontalAlignment.Left,
                     VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Row,
-                    Padding = UDim.new(0, 4),
+                    Padding = UDim.new(0, 6),
                 })
 
                 local Name = Utility.New('TextLabel', {
@@ -5540,79 +6077,116 @@ local Library = (function()
                     Text = data.displayName or flag,
                     TextSize = Library.FontSize,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowName,
-                    TextStrokeTransparency = 0.9,
+                    TextColor3 = Resolve(C.RowName),
+                    TextTransparency = C.NameTransparency,
+                    TextStrokeTransparency = 1,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 90, 1, 0),
+                    Size = UDim2.new(1, -90, 1, 0),
                     TextXAlignment = Enum.TextXAlignment.Left,
                     TextYAlignment = Enum.TextYAlignment.Center,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
                     LayoutOrder = 1,
                     Parent = Row,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
                 })
+                local NameOutline = AddTextOutline(Name)
 
-                local ToggleBadge = Utility.New('TextLabel', {
-                    Name = 'ToggleBadge',
-                    Text = '[ toggle ]',
+                local Mode = Utility.New('TextLabel', {
+                    Name = 'Mode',
+                    Text = '[toggle]',
                     TextSize = Library.FontSize - 1,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowKey,
-                    TextStrokeTransparency = 0.9,
+                    TextColor3 = Resolve(C.RowMode),
+                    TextTransparency = C.ModeTransparency,
+                    TextStrokeTransparency = 1,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 70, 1, 0),
-                    TextXAlignment = Enum.TextXAlignment.Center,
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    TextXAlignment = Enum.TextXAlignment.Right,
                     TextYAlignment = Enum.TextYAlignment.Center,
                     LayoutOrder = 2,
                     Parent = Row,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
                 })
+                local ModeOutline = AddTextOutline(Mode)
 
+                local keyText = FormatKey(data.key)
                 local Key = Utility.New('TextLabel', {
                     Name = 'Key',
-                    Text = '[' .. (data.key and data.key.Name or '?') .. ']',
+                    Text = '[' .. keyText .. ']',
                     TextSize = Library.FontSize - 1,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowKey,
-                    TextStrokeTransparency = 0.9,
+                    TextColor3 = Resolve(C.RowKey),
+                    TextTransparency = C.KeyTransparency,
+                    TextStrokeTransparency = 1,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 40, 1, 0),
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
                     TextXAlignment = Enum.TextXAlignment.Right,
                     TextYAlignment = Enum.TextYAlignment.Center,
                     LayoutOrder = 3,
                     Parent = Row,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
                 })
+                local KeyOutline = AddTextOutline(Key)
 
-                local Entry = { Row = Row, Name = Name, ToggleBadge = ToggleBadge, Key = Key, Flag = flag }
+                local Entry = {
+                    Row = Row,
+                    Name = Name,
+                    NameOutline = NameOutline,
+                    Mode = Mode,
+                    ModeOutline = ModeOutline,
+                    Key = Key,
+                    KeyOutline = KeyOutline,
+                    Flag = flag,
+                    Active = false,
+                }
                 self.Rows[flag] = Entry
                 return Entry
             end
 
-            function Binds:UpdateRow(flag, data)
+            function Binds:UpdateRow(flag, data, active)
                 local Entry = self.Rows[flag]
                 if not Entry then return end
+
+                local C = Binds.Colors
+                local keyText = FormatKey(data.key)
                 Entry.Name.Text = data.displayName or flag
-                Entry.Name.TextColor3 = Binds.Colors.RowActive
-                Entry.Key.Text = '[' .. (data.key and data.key.Name or '?') .. ']'
-                Entry.Key.TextColor3 = Binds.Colors.RowKey
-                Entry.ToggleBadge.TextColor3 = Binds.Colors.RowKey
+                Entry.Mode.Text = '[' .. (data.mode or 'toggle'):lower() .. ']'
+                Entry.Key.Text = '[' .. keyText .. ']'
                 Entry.Row.Visible = true
+
+                if active then
+                    Entry.Row.BackgroundColor3 = Resolve(C.RowActiveBackground)
+                    Entry.Row.BackgroundTransparency = C.RowActiveTransparency
+                    Entry.Name.TextColor3 = Resolve(C.RowActiveName)
+                    Entry.Name.TextTransparency = C.RowActiveNameTransparency
+                    Entry.Mode.TextColor3 = Resolve(C.RowActiveMode)
+                    Entry.Mode.TextTransparency = C.RowActiveModeTransparency
+                    Entry.Key.TextColor3 = Resolve(C.RowActiveKey)
+                    Entry.Key.TextTransparency = C.RowActiveKeyTransparency
+                    Entry.Active = true
+                else
+                    Entry.Row.BackgroundColor3 = Resolve(C.RowBackground)
+                    Entry.Row.BackgroundTransparency = C.RowTransparency
+                    Entry.Name.TextColor3 = Resolve(C.RowName)
+                    Entry.Name.TextTransparency = C.NameTransparency
+                    Entry.Mode.TextColor3 = Resolve(C.RowMode)
+                    Entry.Mode.TextTransparency = C.ModeTransparency
+                    Entry.Key.TextColor3 = Resolve(C.RowKey)
+                    Entry.Key.TextTransparency = C.KeyTransparency
+                    Entry.Active = false
+                end
             end
 
             function Binds:Scan()
                 for flag, value in pairs(Library.Flags) do
                     if type(value) == 'table' and value.key ~= nil and value.value ~= nil then
-                        if value.value == true then
-                            if not self.Rows[flag] then
-                                self:CreateRow(flag, value)
-                            else
-                                self:UpdateRow(flag, value)
-                            end
-                        else
-                            if self.Rows[flag] then
-                                self.Rows[flag].Row.Visible = false
-                            end
+                        if not self.Rows[flag] then
+                            self:CreateRow(flag, value)
                         end
+                        local active = (value.value == true) or (value.mode == 'Always')
+                        self:UpdateRow(flag, value, active)
                     end
                 end
             end
@@ -5626,6 +6200,45 @@ local Library = (function()
             Binds:Scan()
             Utility.Signal(RunService.Heartbeat:Connect(function() Binds:Scan() end))
 
+            function Binds:RefreshTheme()
+                local C = self.Colors
+                Objects.HeaderContainer.BackgroundColor3 = Resolve(C.HeaderBackground)
+                Objects.HeaderContainer.BackgroundTransparency = C.HeaderTransparency
+                Objects.Title.TextColor3 = Resolve(C.Title)
+                Objects.Title.TextTransparency = C.TitleTransparency
+                Objects.Icon.ImageColor3 = Resolve(C.Icon)
+                Objects.Icon.ImageTransparency = C.IconTransparency
+                if Objects.TitleOutline then
+                    Objects.TitleOutline.Color = Resolve(C.TextOutline)
+                end
+
+                for _, entry in pairs(self.Rows) do
+                    if entry.Active then
+                        entry.Row.BackgroundColor3 = Resolve(C.RowActiveBackground)
+                        entry.Row.BackgroundTransparency = C.RowActiveTransparency
+                        entry.Name.TextColor3 = Resolve(C.RowActiveName)
+                        entry.Name.TextTransparency = C.RowActiveNameTransparency
+                        entry.Mode.TextColor3 = Resolve(C.RowActiveMode)
+                        entry.Mode.TextTransparency = C.RowActiveModeTransparency
+                        entry.Key.TextColor3 = Resolve(C.RowActiveKey)
+                        entry.Key.TextTransparency = C.RowActiveKeyTransparency
+                    else
+                        entry.Row.BackgroundColor3 = Resolve(C.RowBackground)
+                        entry.Row.BackgroundTransparency = C.RowTransparency
+                        entry.Name.TextColor3 = Resolve(C.RowName)
+                        entry.Name.TextTransparency = C.NameTransparency
+                        entry.Mode.TextColor3 = Resolve(C.RowMode)
+                        entry.Mode.TextTransparency = C.ModeTransparency
+                        entry.Key.TextColor3 = Resolve(C.RowKey)
+                        entry.Key.TextTransparency = C.KeyTransparency
+                    end
+
+                    if entry.NameOutline then entry.NameOutline.Color = Resolve(C.TextOutline) end
+                    if entry.ModeOutline then entry.ModeOutline.Color = Resolve(C.TextOutline) end
+                    if entry.KeyOutline then entry.KeyOutline.Color = Resolve(C.TextOutline) end
+                end
+            end
+
             function Binds:SetVisible(v)
                 self.Visible = v
                 Objects.Root.Visible = v
@@ -5637,38 +6250,38 @@ local Library = (function()
 
             function Binds:SetHeaderBackground(color)
                 Binds.Colors.HeaderBackground = color
-                Objects.HeaderContainer.BackgroundColor3 = color
+                Objects.HeaderContainer.BackgroundColor3 = Resolve(color)
             end
 
-            function Binds:SetHeaderStroke(color)
-                Binds.Colors.HeaderStroke = color
-                Objects.HeaderStroke.Color = color
+            function Binds:SetHeaderTransparency(t)
+                Binds.Colors.HeaderTransparency = t
+                Objects.HeaderContainer.BackgroundTransparency = t
             end
 
             function Binds:SetTitle(color)
                 Binds.Colors.Title = color
-                Objects.Title.TextColor3 = color
+                Objects.Title.TextColor3 = Resolve(color)
             end
 
             function Binds:SetIcon(color)
                 Binds.Colors.Icon = color
-                Objects.Icon.ImageColor3 = color
+                Objects.Icon.ImageColor3 = Resolve(color)
+            end
+
+            function Binds:SetRowBackground(color)
+                Binds.Colors.RowBackground = color
+                for _, entry in pairs(Binds.Rows) do
+                    if not entry.Active then
+                        entry.Row.BackgroundColor3 = Resolve(color)
+                    end
+                end
             end
 
             function Binds:SetRowName(color)
                 Binds.Colors.RowName = color
                 for _, entry in pairs(Binds.Rows) do
-                    if not entry.Row.Visible then
-                        entry.Name.TextColor3 = color
-                    end
-                end
-            end
-
-            function Binds:SetRowActive(color)
-                Binds.Colors.RowActive = color
-                for _, entry in pairs(Binds.Rows) do
-                    if entry.Row.Visible then
-                        entry.Name.TextColor3 = color
+                    if not entry.Active then
+                        entry.Name.TextColor3 = Resolve(color)
                     end
                 end
             end
@@ -5676,8 +6289,74 @@ local Library = (function()
             function Binds:SetRowKey(color)
                 Binds.Colors.RowKey = color
                 for _, entry in pairs(Binds.Rows) do
-                    entry.Key.TextColor3 = color
-                    entry.ToggleBadge.TextColor3 = color
+                    if not entry.Active then
+                        entry.Key.TextColor3 = Resolve(color)
+                    end
+                end
+            end
+
+            function Binds:SetRowMode(color)
+                Binds.Colors.RowMode = color
+                for _, entry in pairs(Binds.Rows) do
+                    if not entry.Active then
+                        entry.Mode.TextColor3 = Resolve(color)
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveBackground(color)
+                Binds.Colors.RowActiveBackground = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Row.BackgroundColor3 = Resolve(color)
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveName(color)
+                Binds.Colors.RowActiveName = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Name.TextColor3 = Resolve(color)
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveKey(color)
+                Binds.Colors.RowActiveKey = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Key.TextColor3 = Resolve(color)
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveMode(color)
+                Binds.Colors.RowActiveMode = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Mode.TextColor3 = Resolve(color)
+                    end
+                end
+            end
+
+            function Binds:SetTextOutline(color)
+                Binds.Colors.TextOutline = color
+                if Objects.TitleOutline then Objects.TitleOutline.Color = Resolve(color) end
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.NameOutline then entry.NameOutline.Color = Resolve(color) end
+                    if entry.ModeOutline then entry.ModeOutline.Color = Resolve(color) end
+                    if entry.KeyOutline then entry.KeyOutline.Color = Resolve(color) end
+                end
+            end
+
+            function Binds:SetTextOutlineTransparency(t)
+                Binds.Colors.TextOutlineTransparency = t
+                if Objects.TitleOutline then Objects.TitleOutline.Transparency = t end
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.NameOutline then entry.NameOutline.Transparency = t end
+                    if entry.ModeOutline then entry.ModeOutline.Transparency = t end
+                    if entry.KeyOutline then entry.KeyOutline.Transparency = t end
                 end
             end
 
@@ -5689,13 +6368,8 @@ local Library = (function()
             Library.Fps = math.floor(1 / step)
             local Clock = os.clock()
             local Watermark = Library.ScreenGui:FindFirstChild('Watermark')
-
-            -- Vertical starting position: 100px down from top (or below watermark if visible)
-            local BaseOffset = (Watermark and Watermark.Visible and Watermark.AbsoluteSize.Y + 5 or 0) + 100
-            local Offset = BaseOffset
-
-            -- Maximum opacity: 0.9 means 90% opaque (10% transparent)
-            local MinTransparency = 0.1
+            local Offset = (Watermark and Watermark.Visible and Watermark.AbsoluteSize.Y + 5 or 0) + 100
+            local MinTransparency = 0.5
 
             for _, notification in Library.Notifications do
                 local Objects = notification.Objects
@@ -5710,16 +6384,11 @@ local Library = (function()
                 local Outline = Objects.Outline
                 local Background = Objects.Background
                 local Title = Objects.Title
-
-                -- Centered horizontally, offset vertically
                 Holder.Position = UDim2.new(0.47, 0, 0.7, Offset)
-
-                -- Blend between fully transparent (1) and MinTransparency (0.1)
                 local alpha = (1 - MinTransparency) * (1 - (Lerp / 255)) + MinTransparency
                 Outline.BackgroundTransparency = alpha
                 Background.BackgroundTransparency = alpha
                 Title.TextTransparency = alpha
-
                 if #notification.Buttons > 0 then
                     notification.ButtonLerp = Utility.Lerp(notification.ButtonLerp, notification.ShowButtons and 255 or 0, 0.1)
                     for _, obj in Objects.ButtonHolder:GetDescendants() do
