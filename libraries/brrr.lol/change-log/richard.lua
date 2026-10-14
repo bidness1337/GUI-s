@@ -4,11 +4,8 @@ if getgenv().Library then
     getgenv().Library:Unload()
 end
 
-local SCRIPT_VERSION = 'v1.0.0'
+local SCRIPT_VERSION = 'V2'
 
--- ============================================================
--- SERVICE CACHE
--- ============================================================
 local serviceCache = {}
 do
     local function initServices()
@@ -101,9 +98,6 @@ do
     serviceCache = initServices()
 end
 
--- ============================================================
--- LIBRARY
--- ============================================================
 local Library = (function()
     local Env = getgenv()
 
@@ -615,7 +609,7 @@ local Library = (function()
             period = '.', backslash = '\\', minus = '-', equals = '=', space = 'SPC', ['return'] = 'ENT',
             tab = 'TAB', capslock = 'CAP', leftshift = 'LSH', mousebutton1 = 'MB1', mousebutton2 = 'MB2',
             mousebutton3 = 'MB3', rightshift = 'RSH', leftcontrol = 'CTRL', leftalt = 'ALT',
-            leftsuper = 'WIN', rightcontrol = 'CTRL', rightalt = 'ALT', rightsuper = 'WIN',
+            leftsuper = 'WIN', rightcontrol = 'RC', rightalt = 'ALT', rightsuper = 'WIN',
             insert = 'INS', delete = 'DEL', home = 'HME', pageup = 'PUD', pagedown = 'PDN',
             up = 'UP', down = 'DWN', left = 'LFT', right = 'RGT', numlock = 'NUM',
             numpad0 = 'N0', numpad1 = 'N1', numpad2 = 'N2', numpad3 = 'N3', numpad4 = 'N4',
@@ -773,6 +767,83 @@ local Library = (function()
             Parent = HiddenUI,
         })
 
+        Library.BlurScreenGui = Utility.New('ScreenGui', {
+            Name = '\0',
+            DisplayOrder = 0,
+            Parent = HiddenUI,
+            IgnoreGuiInset = true,
+        })
+
+        Library.BackgroundFrame = Utility.New('Frame', {
+            Name = 'Background',
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Visible = false,
+            ZIndex = -1,
+            Parent = Library.BlurScreenGui,
+        })
+
+        Library.BlurFrame = Utility.New('Frame', {
+            Name = 'Blur',
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            Visible = false,
+            ZIndex = -2,
+            Parent = Library.BlurScreenGui,
+        })
+
+        Library.BlurEffect = Utility.New('BlurEffect', {
+            Name = 'Blur',
+            Size = 0,
+            Parent = Lighting,
+        })
+
+        Library.Background = {
+            DarkEnabled = false,
+            DarkTransparency = 0.5,
+            BlurEnabled = false,
+            BlurSize = 12,
+        }
+
+        function Library.SetDarkBackground(enabled, transparency)
+            Library.Background.DarkEnabled = enabled
+            if transparency ~= nil then
+                Library.Background.DarkTransparency = transparency
+            end
+            Library.BackgroundFrame.Visible = enabled
+            Library.BackgroundFrame.BackgroundTransparency = enabled and Library.Background.DarkTransparency or 1
+        end
+
+        function Library.SetBlurBackground(enabled, size)
+            Library.Background.BlurEnabled = enabled
+            if size ~= nil then
+                Library.Background.BlurSize = size
+            end
+            Library.BlurFrame.Visible = enabled
+            Library.BlurEffect.Enabled = enabled
+            Library.BlurEffect.Size = enabled and Library.Background.BlurSize or 0
+        end
+
+        function Library.SetDarkTransparency(transparency)
+            Library.Background.DarkTransparency = transparency
+            if Library.BackgroundFrame.Visible then
+                Library.BackgroundFrame.BackgroundTransparency = transparency
+            end
+        end
+
+        function Library.SetBlurSize(size)
+            Library.Background.BlurSize = size
+            if Library.BlurEffect.Enabled then
+                Library.BlurEffect.Size = size
+            end
+        end
+
         function Library.Tween(obj, props, tweeninfo)
             tweeninfo = tweeninfo or TweenInfo.new(Library.TweenSpeed, Library.TweenStyle)
             local Tween = TweenService:Create(obj, tweeninfo, props)
@@ -884,9 +955,6 @@ local Library = (function()
             return Table
         end
 
-                -- ============================================================
-        -- RESIZE
-        -- ============================================================
         function Library.Resize(holder, box)
             local Start, StartSize, Resizing
             local OriginalSize = holder.Size
@@ -972,12 +1040,8 @@ local Library = (function()
             end))
         end
 
-        -- ============================================================
-        -- DRAGGING
-        -- ============================================================
         function Library.Dragging(holder, box)
             local Start, StartPos, Dragging
-            local Inset = GuiService:GetGuiInset()
             local HasMoved = false
             local Wireframe
 
@@ -988,7 +1052,7 @@ local Library = (function()
                 Dragging = true
                 HasMoved = false
                 Start = input.Position
-                StartPos = holder.Position
+                StartPos = holder.AbsolutePosition
 
                 local changed, ended
 
@@ -1030,15 +1094,15 @@ local Library = (function()
                         local MaxSize = holder.AbsoluteSize
                         local ViewportSize = Camera.ViewportSize
                         local newX = math.clamp(
-                            StartPos.X.Offset + delta.X,
+                            StartPos.X + delta.X,
                             0,
                             ViewportSize.x - MaxSize.x
                         )
                         local newY = math.clamp(
-                            StartPos.Y.Offset + delta.Y + 36,
+                            StartPos.Y + delta.Y,
                             0,
                             ViewportSize.y - MaxSize.y
-                        ) + (Inset.Y / 2)
+                        )
                         Wireframe.Position = UDim2.fromOffset(newX, newY)
                     end
                 end)
@@ -1062,9 +1126,6 @@ local Library = (function()
             end))
         end
 
-        -- ============================================================
-        -- COLORPICKER WINDOW
-        -- ============================================================
         function Library.ColorpickerWindow(self)
             local Popup = {
                 Visible = false,
@@ -1515,9 +1576,6 @@ local Library = (function()
             Library.ColorpickerWindow = ColorpickerWindowFunc({ZIndex = 5000})
         end
 
-        -- ============================================================
-        -- WINDOW  (all bottom-bar collision fixes baked in)
-        -- ============================================================
         function Library.Window(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -1528,6 +1586,10 @@ local Library = (function()
                 showBottomBar = true,
                 gameName = nil,
                 version = SCRIPT_VERSION,
+                darkBackground = false,
+                blurBackground = false,
+                darkTransparency = 0.5,
+                blurSize = 12,
             })
 
             local Window = {
@@ -1542,7 +1604,6 @@ local Library = (function()
             local ZIndex = Window.ZIndex
             local Objects = Window.Objects
 
-            -- Resolve game name
             local resolvedGameName = cfg.gameName
             if not resolvedGameName then
                 local ok, info = pcall(function()
@@ -1556,9 +1617,15 @@ local Library = (function()
             end
             Window.GameName = resolvedGameName
 
-            -- BottomBarHeight defined UP HERE so SideContainer and PageHolder can use it
             local BottomBarHeight = cfg.showBottomBar and 22 or 0
             Window.BottomBarHeight = BottomBarHeight
+
+            if cfg.darkBackground then
+                Library.SetDarkBackground(true, cfg.darkTransparency)
+            end
+            if cfg.blurBackground then
+                Library.SetBlurBackground(true, cfg.blurSize)
+            end
 
             do
                 Objects.ScreenGui = Utility.New('ScreenGui', {
@@ -1586,7 +1653,6 @@ local Library = (function()
 
                 ZIndex = ZIndex + 1
 
-                -- SideContainer stops ABOVE the bottom bar
                 Objects.SideContainer = Utility.New('Frame', {
                     Name = 'SideContainer',
                     Size = UDim2.new(0, 162, 1, -BottomBarHeight),
@@ -1720,9 +1786,6 @@ local Library = (function()
 
                 Library.Resize(Objects.Outline, Objects.ResizeBar)
 
-                -- ============================================================
-                -- BOTTOM BAR (ZIndex 100+ so it's above everything)
-                -- ============================================================
                 Objects.BottomBar = Utility.New('Frame', {
                     Name = 'BottomBar',
                     Size = UDim2.new(1, 0, 0, BottomBarHeight),
@@ -1757,7 +1820,7 @@ local Library = (function()
                     TextTruncate = Enum.TextTruncate.AtEnd,
                     Parent = Objects.BottomBar,
                     ZIndex = 102,
-                }, { TextColor3 = 'Light Text' })
+                }, { TextColor3 = 'Text' })
 
                 Objects.BottomBarVersion = Utility.New('TextLabel', {
                     Name = 'Version',
@@ -1777,7 +1840,6 @@ local Library = (function()
                 Window.BottomBarGame = Objects.BottomBarGame
                 Window.BottomBarVersion = Objects.BottomBarVersion
 
-                -- PageHolder sits beside the sidebar and above the bottom bar
                 Objects.PageHolder = Utility.New('Frame', {
                     Name = 'PageHolder',
                     Size = UDim2.new(1, -Objects.SideContainer.AbsoluteSize.X, 1, -BottomBarHeight),
@@ -1800,7 +1862,6 @@ local Library = (function()
                 Window.PageHolder = Objects.PageHolder
                 ZIndex = ZIndex + 1
 
-                -- Re-apply bottom-bar-aware sizes on window resize
                 Utility.Signal(Objects.Outline:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
                     Objects.SideContainer.Size = UDim2.new(0, 162, 1, -BottomBarHeight)
                     Objects.PageHolder.Size = UDim2.new(
@@ -1855,6 +1916,13 @@ local Library = (function()
                 Window.Tweening = true
                 Window.Visible = not Window.Visible
                 if Window.Visible then Objects.Outline.Visible = true end
+                if Library.Background.DarkEnabled then
+                    Library.BackgroundFrame.Visible = Window.Visible
+                end
+                if Library.Background.BlurEnabled then
+                    Library.BlurFrame.Visible = Window.Visible
+                    Library.BlurEffect.Enabled = Window.Visible
+                end
                 for _, obj in Objects.ScreenGui:GetDescendants() do
                     local Index = Utility.GetTransparency(obj)
                     if Index then
@@ -1879,7 +1947,6 @@ local Library = (function()
                 end))
             end
 
-            -- Poll fill sections a few frames after a window resize
             Utility.Signal(Objects.Outline:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
                 task.spawn(function()
                     for i = 1, 6 do
@@ -1939,9 +2006,6 @@ local Library = (function()
             return setmetatable(Info, Library)
         end
 
-                -- ============================================================
-        -- TAB
-        -- ============================================================
         function Library.Tab(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -2158,7 +2222,6 @@ local Library = (function()
                         end))
                     end
                 end
-                -- Poll fill sections on tab show — AbsoluteSize is 0 right after
                 if status then
                     task.spawn(function()
                         for i = 1, 10 do
@@ -2203,11 +2266,6 @@ local Library = (function()
             return setmetatable(Tab, Library)
         end
 
-        -- ============================================================
-        -- SECTION
-        -- AutoResize = true  -> grows/shrinks to fit content
-        -- AutoResize = false -> fills remaining column space to bottom
-        -- ============================================================
         function Library.Section(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -2509,9 +2567,6 @@ local Library = (function()
             Objects.MainOutline:SetAttribute('LibraryFillSection', (cfg.fill and not cfg.autoResize) or false)
             Objects.MainOutline:SetAttribute('LibraryAutoResize', cfg.autoResize)
 
-            -- ============================================================
-            -- RefreshFill: makes AutoResize=false sections fill to bottom
-            -- ============================================================
             local function RefreshFill()
                 if not Parent or not Parent.Parent then return end
 
@@ -2706,9 +2761,6 @@ local Library = (function()
             return setmetatable(Section, Library)
         end
 
-        -- ============================================================
-        -- POPUP MENU
-        -- ============================================================
         function Library.PopupMenu(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {size = 120})
@@ -2871,9 +2923,6 @@ local Library = (function()
             return setmetatable(Popup, Library)
         end
 
-        -- ============================================================
-        -- POPUP (cog icon)
-        -- ============================================================
         function Library.Popup(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {size = 120})
@@ -3002,9 +3051,6 @@ local Library = (function()
             return Popup
         end
 
-        -- ============================================================
-        -- TOGGLE
-        -- ============================================================
         function Library.Toggle(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3287,9 +3333,6 @@ local Library = (function()
             return setmetatable(Toggle, Library)
         end
 
-        -- ============================================================
-        -- DIVIDER
-        -- ============================================================
         function Library.Divider(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3372,9 +3415,6 @@ local Library = (function()
             return setmetatable(Divider, Library)
         end
 
-        -- ============================================================
-        -- SLIDER
-        -- ============================================================
         function Library.Slider(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3658,9 +3698,6 @@ local Library = (function()
             return setmetatable(Slider, Library)
         end
 
-        -- ============================================================
-        -- BUTTON
-        -- ============================================================
         function Library.Button(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -3799,9 +3836,6 @@ local Library = (function()
             return setmetatable(Button, Library)
         end
 
-                -- ============================================================
-        -- LIST
-        -- ============================================================
         function Library.List(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4072,9 +4106,6 @@ local Library = (function()
             return setmetatable(List, Library)
         end
 
-        -- ============================================================
-        -- DROPDOWN
-        -- ============================================================
         function Library.Dropdown(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4551,9 +4582,6 @@ local Library = (function()
             return setmetatable(Dropdown, Library)
         end
 
-        -- ============================================================
-        -- COLORPICKER (inline)
-        -- ============================================================
         function Library.Colorpicker(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4742,9 +4770,6 @@ local Library = (function()
             return setmetatable(Colorpicker, Library)
         end
 
-        -- ============================================================
-        -- TEXTBOX
-        -- ============================================================
         function Library.Textbox(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -4842,9 +4867,6 @@ local Library = (function()
             return setmetatable(Textbox, Library)
         end
 
-        -- ============================================================
-        -- KEYBIND
-        -- ============================================================
         function Library.Keybind(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -5278,9 +5300,6 @@ local Library = (function()
             return setmetatable(Keybind, Library)
         end
 
-        -- ============================================================
-        -- LABEL
-        -- ============================================================
         function Library.Label(self, cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -5362,9 +5381,6 @@ local Library = (function()
             return setmetatable(Label, Library)
         end
 
-        -- ============================================================
-        -- NOTIFICATION
-        -- ============================================================
         function Library.Notification(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
@@ -5566,17 +5582,16 @@ local Library = (function()
             return Notification
         end
 
-        -- ============================================================
-        -- WATERMARK
-        -- ============================================================
         function Library.Watermark(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
-                text = 'Library | {game} | {time} | {date}',
-                visible = true,
-                rate = 1.6666666666666665E-2,
+                visible = false,
+                rate = 0.2,
                 attached = false,
                 defaultPosition = UDim2.new(0, 10, 0, 0),
+                scriptName = 'richard',
+                scriptNameColor = nil,
+                version = SCRIPT_VERSION,
             })
 
             local ZIndex = 100
@@ -5584,7 +5599,6 @@ local Library = (function()
                 Objects = {},
                 Visible = cfg.visible,
                 Rate = cfg.rate,
-                Text = cfg.text,
                 ZIndex = ZIndex,
                 Clock = os.clock(),
                 Attached = cfg.attached,
@@ -5592,8 +5606,58 @@ local Library = (function()
                 DragStart = nil,
                 DragOrigin = nil,
                 Position = cfg.defaultPosition,
+                ScriptName = cfg.scriptName,
+                ScriptNameColor = cfg.scriptNameColor,
+                Version = cfg.version,
             }
             local Objects = Watermark.Objects
+            local overrideScriptNameColor = cfg.scriptNameColor ~= nil
+
+            local function ColorToHex(color)
+                return string.format('%02x%02x%02x',
+                    math.floor(color.R * 255 + 0.5),
+                    math.floor(color.G * 255 + 0.5),
+                    math.floor(color.B * 255 + 0.5))
+            end
+
+            local function GetScriptNameColor()
+                if overrideScriptNameColor then
+                    return Watermark.ScriptNameColor
+                end
+                return Library.Theme.Accent
+            end
+
+            local function GetPingMs()
+                local item = Stats.Network.ServerStatsItem:FindFirstChild('Data Ping')
+                if item then
+                    local ok, v = pcall(function() return item:GetValueString() end)
+                    if ok and v then
+                        return tonumber(v:match('%d+')) or 0
+                    end
+                end
+                return 0
+            end
+
+            local function GetTime12h()
+                local hour24 = tonumber(os.date('%H')) or 0
+                local minute = os.date('%M')
+                local suffix = (hour24 < 12) and 'AM' or 'PM'
+                local hour12 = hour24 % 12
+                if hour12 == 0 then hour12 = 12 end
+                return string.format('%02d:%s %s', hour12, minute, suffix)
+            end
+
+            local function BuildRichText()
+                local accentHex = ColorToHex(GetScriptNameColor())
+                local lightHex = ColorToHex(Library.Theme['Light Text'])
+                local textHex = ColorToHex(Library.Theme.Text)
+                return string.format(
+                    '<font color="#%s">%s</font> <font color="#%s">(%s)</font> <font color="#%s">/ %d ms / %s</font>',
+                    accentHex, Watermark.ScriptName,
+                    lightHex, Watermark.Version,
+                    textHex, GetPingMs(), GetTime12h()
+                )
+            end
 
             do
                 Objects.Outline = Utility.New('Frame', {
@@ -5604,6 +5668,7 @@ local Library = (function()
                     Position = cfg.defaultPosition,
                     Parent = Library.ScreenGui,
                     ZIndex = ZIndex,
+                    Visible = cfg.visible,
                 }, { BackgroundColor3 = 'Inline' })
                 Utility.New('UICorner', {
                     Name = 'UICorner',
@@ -5643,7 +5708,8 @@ local Library = (function()
                     FontFace = Library.Font,
                     Size = UDim2.new(0, 0, 0, 0),
                     Position = UDim2.new(0, 0, 0, 0),
-                    Text = Watermark.Text,
+                    RichText = true,
+                    Text = '',
                     Parent = Objects.Background,
                     ZIndex = ZIndex,
                 }, { TextColor3 = 'Text' })
@@ -5661,9 +5727,18 @@ local Library = (function()
             end
             Watermark.ZIndex = ZIndex
 
-            function Watermark.SetText(text) Watermark.Text = text end
             function Watermark.SetVisible(visibility) Watermark.Visible = visibility end
             function Watermark.SetRate(rate) Watermark.Rate = rate end
+            function Watermark.SetScriptName(name) Watermark.ScriptName = name end
+            function Watermark.SetVersion(v) Watermark.Version = v end
+            function Watermark.SetScriptNameColor(color)
+                if color == nil then
+                    overrideScriptNameColor = false
+                else
+                    overrideScriptNameColor = true
+                    Watermark.ScriptNameColor = color
+                end
+            end
             function Watermark.SetAttached(attached)
                 Watermark.Attached = attached
                 if attached then
@@ -5726,7 +5801,7 @@ local Library = (function()
                 end
                 if Watermark.Visible and os.clock() - Watermark.Clock >= Watermark.Rate then
                     Watermark.Clock = os.clock()
-                    Objects.Text.Text = Utility.TextTriggers(Watermark.Text)
+                    Objects.Text.Text = BuildRichText()
                     Objects.Text.Size = UDim2.new(0, 0, 0, Objects.Text.TextBounds.Y - 2)
                 end
             end
@@ -5740,17 +5815,14 @@ local Library = (function()
             return Watermark
         end
 
-        -- ============================================================
-        -- BINDS OVERLAY
-        -- ============================================================
         function Library.BindsOverlay(cfg)
             cfg = cfg or {}
             cfg = Library.Config(cfg, {
-                name = 'Binds',
+                name = 'Hotkeys',
                 icon = 'rbxassetid://81471583706380',
                 position = UDim2.new(0, 20, 0.5, -100),
                 visible = true,
-                width = 240,
+                width = 200,
             })
 
             local Binds = {
@@ -5762,17 +5834,48 @@ local Library = (function()
                 DragStart = nil,
                 DragOrigin = nil,
                 Colors = {
-                    HeaderBackground = Color3.fromRGB(15, 15, 15),
-                    HeaderStroke = Color3.fromRGB(60, 60, 60),
+                    HeaderBackground = Color3.fromRGB(60, 60, 60),
+                    HeaderTransparency = 0.5,
                     Title = Color3.fromRGB(255, 255, 255),
-                    Icon = Color3.fromRGB(255, 255, 255),
-                    RowName = Color3.fromRGB(120, 120, 120),
-                    RowActive = Color3.fromRGB(255, 255, 255),
-                    RowKey = Color3.fromRGB(160, 160, 160),
+                    Icon = Library.Theme.Accent,
+
+                    RowBackground = Color3.fromRGB(60, 60, 60),
+                    RowTransparency = 0.5,
+                    RowName = Color3.fromRGB(180, 180, 180),
+                    RowKey = Color3.fromRGB(130, 130, 130),
+                    RowMode = Color3.fromRGB(130, 130, 130),
+
+                    RowActiveBackground = Library.Theme.Accent,
+                    RowActiveTransparency = 0.5,
+                    RowActiveName = Color3.fromRGB(255, 255, 255),
+                    RowActiveKey = Color3.fromRGB(255, 255, 255),
+                    RowActiveMode = Color3.fromRGB(255, 255, 255),
+
+                    TextOutline = Color3.fromRGB(0, 0, 0),
+                    TextOutlineTransparency = 0.4,
                 },
             }
             local ZIndex = Binds.ZIndex
             local Objects = Binds.Objects
+
+            local function FormatKey(key)
+                if not key then return '?' end
+                if typeof(key) == 'EnumItem' then
+                    return Library.KeyConverters[key.Name:lower()] or key.Name
+                end
+                return tostring(key)
+            end
+
+            local function AddTextOutline(label)
+                return Utility.New('UIStroke', {
+                    Name = 'TextOutline',
+                    Parent = label,
+                    Color = Binds.Colors.TextOutline,
+                    Thickness = 1,
+                    Transparency = Binds.Colors.TextOutlineTransparency,
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual,
+                })
+            end
 
             Objects.ScreenGui = Utility.New('ScreenGui', {
                 Name = 'BindsOverlay',
@@ -5799,15 +5902,14 @@ local Library = (function()
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 HorizontalAlignment = Enum.HorizontalAlignment.Left,
                 Parent = Objects.Root,
-                Padding = UDim.new(0, 4),
+                Padding = UDim.new(0, 3),
             })
 
             Objects.HeaderContainer = Utility.New('Frame', {
                 Name = 'HeaderContainer',
-                Size = UDim2.new(0, 0, 0, 24),
-                AutomaticSize = Enum.AutomaticSize.X,
+                Size = UDim2.new(1, 0, 0, 24),
                 BackgroundColor3 = Binds.Colors.HeaderBackground,
-                BackgroundTransparency = 0.15,
+                BackgroundTransparency = Binds.Colors.HeaderTransparency,
                 BorderSizePixel = 0,
                 Parent = Objects.Root,
                 ZIndex = ZIndex + 1,
@@ -5820,36 +5922,19 @@ local Library = (function()
                 CornerRadius = UDim.new(0, 5),
             })
 
-            Objects.HeaderStroke = Utility.New('UIStroke', {
-                Name = 'HeaderStroke',
-                Parent = Objects.HeaderContainer,
-                Color = Binds.Colors.HeaderStroke,
-                Thickness = 1,
-                Transparency = 0.3,
-            })
-
-            Utility.New('UIPadding', {
-                Name = 'UIPadding',
-                Parent = Objects.HeaderContainer,
-                PaddingLeft = UDim.new(0, 8),
-                PaddingRight = UDim.new(0, 10),
-                PaddingTop = UDim.new(0, 4),
-                PaddingBottom = UDim.new(0, 4),
-            })
-
             Utility.New('UIListLayout', {
                 Name = 'UIListLayout',
                 FillDirection = Enum.FillDirection.Horizontal,
                 SortOrder = Enum.SortOrder.LayoutOrder,
-                HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
                 VerticalAlignment = Enum.VerticalAlignment.Center,
                 Parent = Objects.HeaderContainer,
-                Padding = UDim.new(0, 6),
+                Padding = UDim.new(0, 5),
             })
 
             Objects.Icon = Utility.New('ImageLabel', {
                 Name = 'Icon',
-                Size = UDim2.new(0, 14, 0, 14),
+                Size = UDim2.new(0, 12, 0, 12),
                 BackgroundTransparency = 1,
                 Image = cfg.icon,
                 ImageColor3 = Binds.Colors.Icon,
@@ -5861,7 +5946,7 @@ local Library = (function()
             Objects.Title = Utility.New('TextLabel', {
                 Name = 'Title',
                 Text = cfg.name,
-                TextSize = Library.FontSize,
+                TextSize = Library.FontSize - 1,
                 FontFace = Library.Font,
                 TextColor3 = Binds.Colors.Title,
                 TextStrokeTransparency = 0.8,
@@ -5874,6 +5959,7 @@ local Library = (function()
                 Parent = Objects.HeaderContainer,
                 ZIndex = ZIndex + 1,
             })
+            Objects.TitleOutline = AddTextOutline(Objects.Title)
 
             Utility.Signal(Objects.HeaderContainer.InputBegan:Connect(function(input)
                 if input.UserInputType ~= Enum.UserInputType.MouseButton1
@@ -5915,7 +6001,7 @@ local Library = (function()
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 HorizontalAlignment = Enum.HorizontalAlignment.Left,
                 Parent = Objects.RowsContainer,
-                Padding = UDim.new(0, 0),
+                Padding = UDim.new(0, 3),
             })
 
             function Binds:CreateRow(flag, data)
@@ -5923,12 +6009,26 @@ local Library = (function()
 
                 local Row = Utility.New('Frame', {
                     Name = 'Row_' .. flag,
-                    Size = UDim2.new(1, 0, 0, 16),
-                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 22),
+                    BackgroundColor3 = Binds.Colors.RowBackground,
+                    BackgroundTransparency = Binds.Colors.RowTransparency,
                     BorderSizePixel = 0,
                     Parent = Objects.RowsContainer,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
                 })
+                Utility.New('UICorner', {
+                    Name = 'UICorner',
+                    Parent = Row,
+                    CornerRadius = UDim.new(0, 5),
+                })
+
+                Utility.New('UIPadding', {
+                    Name = 'UIPadding',
+                    Parent = Row,
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                })
+
                 Utility.New('UIListLayout', {
                     Name = 'UIListLayout',
                     FillDirection = Enum.FillDirection.Horizontal,
@@ -5936,87 +6036,114 @@ local Library = (function()
                     HorizontalAlignment = Enum.HorizontalAlignment.Left,
                     VerticalAlignment = Enum.VerticalAlignment.Center,
                     Parent = Row,
-                    Padding = UDim.new(0, 4),
+                    Padding = UDim.new(0, 6),
                 })
 
                 local Name = Utility.New('TextLabel', {
                     Name = 'Name',
                     Text = data.displayName or flag,
-                    TextSize = Library.FontSize,
-                    FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowName,
-                    TextStrokeTransparency = 0.9,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 90, 1, 0),
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextYAlignment = Enum.TextYAlignment.Center,
-                    LayoutOrder = 1,
-                    Parent = Row,
-                    ZIndex = ZIndex,
-                })
-
-                local ToggleBadge = Utility.New('TextLabel', {
-                    Name = 'ToggleBadge',
-                    Text = '[ toggle ]',
                     TextSize = Library.FontSize - 1,
                     FontFace = Library.Font,
-                    TextColor3 = Binds.Colors.RowKey,
-                    TextStrokeTransparency = 0.9,
+                    TextColor3 = Binds.Colors.RowName,
+                    TextStrokeTransparency = 0.8,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 70, 1, 0),
-                    TextXAlignment = Enum.TextXAlignment.Center,
+                    Size = UDim2.new(1, -90, 1, 0),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
+                    LayoutOrder = 1,
+                    Parent = Row,
+                    ZIndex = ZIndex + 2,
+                })
+                local NameOutline = AddTextOutline(Name)
+
+                local Mode = Utility.New('TextLabel', {
+                    Name = 'Mode',
+                    Text = '[toggle]',
+                    TextSize = Library.FontSize - 2,
+                    FontFace = Library.Font,
+                    TextColor3 = Binds.Colors.RowMode,
+                    TextStrokeTransparency = 0.8,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    TextXAlignment = Enum.TextXAlignment.Right,
                     TextYAlignment = Enum.TextYAlignment.Center,
                     LayoutOrder = 2,
                     Parent = Row,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
                 })
+                local ModeOutline = AddTextOutline(Mode)
 
+                local keyText = FormatKey(data.key)
                 local Key = Utility.New('TextLabel', {
                     Name = 'Key',
-                    Text = '[' .. (data.key and data.key.Name or '?') .. ']',
-                    TextSize = Library.FontSize - 1,
+                    Text = '[' .. keyText .. ']',
+                    TextSize = Library.FontSize - 2,
                     FontFace = Library.Font,
                     TextColor3 = Binds.Colors.RowKey,
-                    TextStrokeTransparency = 0.9,
+                    TextStrokeTransparency = 0.8,
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 40, 1, 0),
+                    Size = UDim2.new(0, 0, 1, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
                     TextXAlignment = Enum.TextXAlignment.Right,
                     TextYAlignment = Enum.TextYAlignment.Center,
                     LayoutOrder = 3,
                     Parent = Row,
-                    ZIndex = ZIndex,
+                    ZIndex = ZIndex + 2,
                 })
+                local KeyOutline = AddTextOutline(Key)
 
-                local Entry = { Row = Row, Name = Name, ToggleBadge = ToggleBadge, Key = Key, Flag = flag }
+                local Entry = {
+                    Row = Row,
+                    Name = Name,
+                    NameOutline = NameOutline,
+                    Mode = Mode,
+                    ModeOutline = ModeOutline,
+                    Key = Key,
+                    KeyOutline = KeyOutline,
+                    Flag = flag,
+                    Active = false,
+                }
                 self.Rows[flag] = Entry
                 return Entry
             end
 
-            function Binds:UpdateRow(flag, data)
+            function Binds:UpdateRow(flag, data, active)
                 local Entry = self.Rows[flag]
                 if not Entry then return end
+
+                local keyText = FormatKey(data.key)
                 Entry.Name.Text = data.displayName or flag
-                Entry.Name.TextColor3 = Binds.Colors.RowActive
-                Entry.Key.Text = '[' .. (data.key and data.key.Name or '?') .. ']'
-                Entry.Key.TextColor3 = Binds.Colors.RowKey
-                Entry.ToggleBadge.TextColor3 = Binds.Colors.RowKey
+                Entry.Mode.Text = '[' .. (data.mode or 'toggle'):lower() .. ']'
+                Entry.Key.Text = '[' .. keyText .. ']'
                 Entry.Row.Visible = true
+
+                if active then
+                    Entry.Row.BackgroundColor3 = Binds.Colors.RowActiveBackground
+                    Entry.Row.BackgroundTransparency = Binds.Colors.RowActiveTransparency
+                    Entry.Name.TextColor3 = Binds.Colors.RowActiveName
+                    Entry.Mode.TextColor3 = Binds.Colors.RowActiveMode
+                    Entry.Key.TextColor3 = Binds.Colors.RowActiveKey
+                    Entry.Active = true
+                else
+                    Entry.Row.BackgroundColor3 = Binds.Colors.RowBackground
+                    Entry.Row.BackgroundTransparency = Binds.Colors.RowTransparency
+                    Entry.Name.TextColor3 = Binds.Colors.RowName
+                    Entry.Mode.TextColor3 = Binds.Colors.RowMode
+                    Entry.Key.TextColor3 = Binds.Colors.RowKey
+                    Entry.Active = false
+                end
             end
 
             function Binds:Scan()
                 for flag, value in pairs(Library.Flags) do
                     if type(value) == 'table' and value.key ~= nil and value.value ~= nil then
-                        if value.value == true then
-                            if not self.Rows[flag] then
-                                self:CreateRow(flag, value)
-                            else
-                                self:UpdateRow(flag, value)
-                            end
-                        else
-                            if self.Rows[flag] then
-                                self.Rows[flag].Row.Visible = false
-                            end
+                        if not self.Rows[flag] then
+                            self:CreateRow(flag, value)
                         end
+                        local active = (value.value == true) or (value.mode == 'Always')
+                        self:UpdateRow(flag, value, active)
                     end
                 end
             end
@@ -6044,9 +6171,9 @@ local Library = (function()
                 Objects.HeaderContainer.BackgroundColor3 = color
             end
 
-            function Binds:SetHeaderStroke(color)
-                Binds.Colors.HeaderStroke = color
-                Objects.HeaderStroke.Color = color
+            function Binds:SetHeaderTransparency(t)
+                Binds.Colors.HeaderTransparency = t
+                Objects.HeaderContainer.BackgroundTransparency = t
             end
 
             function Binds:SetTitle(color)
@@ -6059,19 +6186,19 @@ local Library = (function()
                 Objects.Icon.ImageColor3 = color
             end
 
-            function Binds:SetRowName(color)
-                Binds.Colors.RowName = color
+            function Binds:SetRowBackground(color)
+                Binds.Colors.RowBackground = color
                 for _, entry in pairs(Binds.Rows) do
-                    if not entry.Row.Visible then
-                        entry.Name.TextColor3 = color
+                    if not entry.Active then
+                        entry.Row.BackgroundColor3 = color
                     end
                 end
             end
 
-            function Binds:SetRowActive(color)
-                Binds.Colors.RowActive = color
+            function Binds:SetRowName(color)
+                Binds.Colors.RowName = color
                 for _, entry in pairs(Binds.Rows) do
-                    if entry.Row.Visible then
+                    if not entry.Active then
                         entry.Name.TextColor3 = color
                     end
                 end
@@ -6080,8 +6207,74 @@ local Library = (function()
             function Binds:SetRowKey(color)
                 Binds.Colors.RowKey = color
                 for _, entry in pairs(Binds.Rows) do
-                    entry.Key.TextColor3 = color
-                    entry.ToggleBadge.TextColor3 = color
+                    if not entry.Active then
+                        entry.Key.TextColor3 = color
+                    end
+                end
+            end
+
+            function Binds:SetRowMode(color)
+                Binds.Colors.RowMode = color
+                for _, entry in pairs(Binds.Rows) do
+                    if not entry.Active then
+                        entry.Mode.TextColor3 = color
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveBackground(color)
+                Binds.Colors.RowActiveBackground = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Row.BackgroundColor3 = color
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveName(color)
+                Binds.Colors.RowActiveName = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Name.TextColor3 = color
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveKey(color)
+                Binds.Colors.RowActiveKey = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Key.TextColor3 = color
+                    end
+                end
+            end
+
+            function Binds:SetRowActiveMode(color)
+                Binds.Colors.RowActiveMode = color
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.Active then
+                        entry.Mode.TextColor3 = color
+                    end
+                end
+            end
+
+            function Binds:SetTextOutline(color)
+                Binds.Colors.TextOutline = color
+                if Objects.TitleOutline then Objects.TitleOutline.Color = color end
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.NameOutline then entry.NameOutline.Color = color end
+                    if entry.ModeOutline then entry.ModeOutline.Color = color end
+                    if entry.KeyOutline then entry.KeyOutline.Color = color end
+                end
+            end
+
+            function Binds:SetTextOutlineTransparency(t)
+                Binds.Colors.TextOutlineTransparency = t
+                if Objects.TitleOutline then Objects.TitleOutline.Transparency = t end
+                for _, entry in pairs(Binds.Rows) do
+                    if entry.NameOutline then entry.NameOutline.Transparency = t end
+                    if entry.ModeOutline then entry.ModeOutline.Transparency = t end
+                    if entry.KeyOutline then entry.KeyOutline.Transparency = t end
                 end
             end
 
@@ -6089,9 +6282,6 @@ local Library = (function()
             return Binds
         end
 
-        -- ============================================================
-        -- NOTIFICATION HANDLER
-        -- ============================================================
         function Library.HandleNotifications(step)
             Library.Fps = math.floor(1 / step)
             local Clock = os.clock()
@@ -6151,9 +6341,6 @@ local Library = (function()
 
         Utility.Signal(RunService.RenderStepped:Connect(Library.HandleNotifications))
 
-        -- ============================================================
-        -- CONFIG SYSTEM
-        -- ============================================================
         local XOR_PASSWORD = '32visionLibrary'
         local function xorEncrypt(data, password)
             local encrypted = ''
@@ -6398,4 +6585,4 @@ local Library = (function()
     return Library
 end)()
 
-return Library
+return Library 
