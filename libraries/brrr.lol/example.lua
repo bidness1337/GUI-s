@@ -1,6 +1,6 @@
 
 local LoadingTick = os.clock()
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/update%202.3.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/brrr.lol/change-log/richard.lua"))()
 
 local Window = Library:Window({
     Name = "richard",
@@ -9,6 +9,10 @@ local Window = Library:Window({
     FontSize = 20,
     showBottomBar = true,
     version = SCRIPT_VERSION,
+    darkBackground = false,
+    blurBackground = false,
+    darkTransparency = 0.5,
+    blurSize = 12,
 })
 
 
@@ -48,13 +52,14 @@ local VisualsTab  = Window:Tab({ Name = "visuals",  Icon = icons.visuals  })
 local SettingsTab = Window:Tab({ Name = "settings", Icon = icons.settings })
 
 local Watermark = Library:Watermark({
-    Text = 'richard | {fps} FPS | {ping} ms',
     Visible = false,
     Rate = 0.2,
+    ScriptName = 'richard',
+    version = "V2",
 })
 
 local Binds = Library:BindsOverlay({
-    Name = 'Binds',
+    Name = 'Hotkeys',
     Icon = 'rbxassetid://81471583706380',
     Position = UDim2.new(0, 20, 0.5, -100),
     Visible = true,
@@ -117,7 +122,7 @@ do
     local s = CombatTab:Section({ Name = "risky stuff", Side = 'right', AutoResize = true })
 
     s:Label({
-        Name = '⚠ WARNING: The options below are dangerous',
+        Name = 'WARNING: The options below are dangerous',
         Risky = true, Bold = true,
     })
 
@@ -223,7 +228,7 @@ end
 do
     local cs = SettingsTab:Section({ Name = 'configs', Side = 'left',  AutoResize = true })
     local us = SettingsTab:Section({ Name = 'server',  Side = 'left',  AutoResize = true })
-    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeihgt = 1000, MaxHeight = 1000 })
+    local ts = SettingsTab:Section({ Name = 'theme',   Side = 'right', AutoResize = false, MinHeight = 1000, MaxHeight = 1000 })
 
     cs:Textbox({
         Name = 'config name',
@@ -232,7 +237,7 @@ do
         Flag = 'config_name',
     })
 
-    local cfgPath = 'brrr.lol\\Configs'
+    local cfgPath = 'richard\\Configs'
     local function getCfgList()
         local cfg = {}
         if isfolder and isfolder(cfgPath) then
@@ -254,17 +259,6 @@ do
         Flag = 'selected_config',
         Gradient = true,
     })
-
-    local function setBindsVisible(v)
-        if not Binds then return end
-        if Binds.SetVisible then
-            Binds:SetVisible(v)
-        elseif Binds.SetVisibleState then
-            Binds:SetVisibleState(v)
-        else
-            Binds.Visible = v
-        end
-    end
 
     local function cfgOp(op)
         local flag = (op == 'load' or op == 'del' or op == 'ovr') and 'selected_config' or 'config_name'
@@ -299,9 +293,6 @@ do
                             if Library.Flags['binds_visible'] ~= nil then
                                 setBindsVisible(Library.Flags['binds_visible'])
                             end
-                        end
-                        if ReapplyAllSettings then
-                            ReapplyAllSettings()
                         end
                     end)
                 end
@@ -386,17 +377,6 @@ do
         end,
     })
 
-    local function updateWatermark()
-        local text = 'brrr.lol'
-        local types = Library.Flags.watermark_types
-        if types and #types > 0 then
-            for _, v in ipairs(types) do
-                text = text .. ' | {' .. v .. '}'
-            end
-        end
-        if Watermark and Watermark.SetText then Watermark.SetText(text) end
-    end
-
     local watermarkPopup = watermarkToggle:Popup({ Size = 240 })
 
     watermarkPopup:Slider({
@@ -414,20 +394,6 @@ do
         end,
     })
 
-    watermarkPopup:Dropdown({
-        Name = 'info types',
-        Values = {'fps', 'ping', 'time', 'date', 'hour', 'minute', 'second', 'ap', 'month', 'day', 'year', 'game', 'n'},
-        Value = {'game', 'time'},
-        Multi = true,
-        Gradient = true,
-        ColorPicker = true,
-        Flag = 'watermark_types',
-        Callback = function(v)
-            Library.Flags.watermark_types = v
-            updateWatermark()
-        end,
-    })
-
     watermarkPopup:Toggle({
         Name = 'attach watermark',
         Value = true,
@@ -439,29 +405,35 @@ do
 
     local bindsToggle = ts:Toggle({
         Name = 'show binds overlay',
-        Value = false,
+        Value = true,
         Flag = 'binds_visible',
         Callback = function(v)
             setBindsVisible(v)
         end,
     })
 
-    local bindsPopup = bindsToggle:Popup({ Size = 220 })
+    local bindsPopup = bindsToggle:Popup({ Size = 240 })
+
+    bindsPopup:Divider({ Text = "Header" })
 
     bindsPopup:Colorpicker({
-        Name = 'header background',
+        Name = 'background',
         Value = Binds.Colors.HeaderBackground,
         Alpha = 0,
         Flag = 'binds_header_bg',
         Callback = function(d) Binds:SetHeaderBackground(d.c) end,
     })
 
-    bindsPopup:Colorpicker({
-        Name = 'header stroke',
-        Value = Binds.Colors.HeaderStroke,
-        Alpha = 0,
-        Flag = 'binds_header_stroke',
-        Callback = function(d) Binds:SetHeaderStroke(d.c) end,
+    bindsPopup:Slider({
+        Name = 'transparency',
+        Value = math.floor(Binds.Colors.HeaderTransparency * 100),
+        Min = 0,
+        Max = 100,
+        Float = 1,
+        Suffix = '%s%%',
+        Thickness = 12,
+        Flag = 'binds_header_trans',
+        Callback = function(v) Binds:SetHeaderTransparency(v / 100) end,
     })
 
     bindsPopup:Colorpicker({
@@ -480,8 +452,37 @@ do
         Callback = function(d) Binds:SetIcon(d.c) end,
     })
 
+    bindsPopup:Divider({ Text = "Row - Inactive" })
+
     bindsPopup:Colorpicker({
-        Name = 'row name (inactive)',
+        Name = 'background',
+        Value = Binds.Colors.RowBackground,
+        Alpha = 0,
+        Flag = 'binds_row_bg',
+        Callback = function(d) Binds:SetRowBackground(d.c) end,
+    })
+
+    bindsPopup:Slider({
+        Name = 'transparency',
+        Value = math.floor(Binds.Colors.RowTransparency * 100),
+        Min = 0,
+        Max = 100,
+        Float = 1,
+        Suffix = '%s%%',
+        Thickness = 12,
+        Flag = 'binds_row_trans',
+        Callback = function(v)
+            Binds.Colors.RowTransparency = v / 100
+            for _, entry in pairs(Binds.Rows) do
+                if not entry.Active then
+                    entry.Row.BackgroundTransparency = v / 100
+                end
+            end
+        end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'name color',
         Value = Binds.Colors.RowName,
         Alpha = 0,
         Flag = 'binds_row_name',
@@ -489,19 +490,142 @@ do
     })
 
     bindsPopup:Colorpicker({
-        Name = 'row name (active)',
-        Value = Binds.Colors.RowActive,
+        Name = 'mode color',
+        Value = Binds.Colors.RowMode,
         Alpha = 0,
-        Flag = 'binds_row_active',
-        Callback = function(d) Binds:SetRowActive(d.c) end,
+        Flag = 'binds_row_mode',
+        Callback = function(d) Binds:SetRowMode(d.c) end,
     })
 
     bindsPopup:Colorpicker({
-        Name = 'row key / badge',
+        Name = 'key color',
         Value = Binds.Colors.RowKey,
         Alpha = 0,
         Flag = 'binds_row_key',
         Callback = function(d) Binds:SetRowKey(d.c) end,
+    })
+
+    bindsPopup:Divider({ Text = "Row - Active" })
+
+    bindsPopup:Colorpicker({
+        Name = 'background',
+        Value = Binds.Colors.RowActiveBackground,
+        Alpha = 0,
+        Flag = 'binds_row_active_bg',
+        Callback = function(d) Binds:SetRowActiveBackground(d.c) end,
+    })
+
+    bindsPopup:Slider({
+        Name = 'transparency',
+        Value = math.floor(Binds.Colors.RowActiveTransparency * 100),
+        Min = 0,
+        Max = 100,
+        Float = 1,
+        Suffix = '%s%%',
+        Thickness = 12,
+        Flag = 'binds_row_active_trans',
+        Callback = function(v)
+            Binds.Colors.RowActiveTransparency = v / 100
+            for _, entry in pairs(Binds.Rows) do
+                if entry.Active then
+                    entry.Row.BackgroundTransparency = v / 100
+                end
+            end
+        end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'name color',
+        Value = Binds.Colors.RowActiveName,
+        Alpha = 0,
+        Flag = 'binds_row_active_name',
+        Callback = function(d) Binds:SetRowActiveName(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'mode color',
+        Value = Binds.Colors.RowActiveMode,
+        Alpha = 0,
+        Flag = 'binds_row_active_mode',
+        Callback = function(d) Binds:SetRowActiveMode(d.c) end,
+    })
+
+    bindsPopup:Colorpicker({
+        Name = 'key color',
+        Value = Binds.Colors.RowActiveKey,
+        Alpha = 0,
+        Flag = 'binds_row_active_key',
+        Callback = function(d) Binds:SetRowActiveKey(d.c) end,
+    })
+
+    bindsPopup:Divider({ Text = "Text Outline" })
+
+    bindsPopup:Colorpicker({
+        Name = 'outline color',
+        Value = Binds.Colors.TextOutline,
+        Alpha = 0,
+        Flag = 'binds_text_outline',
+        Callback = function(d) Binds:SetTextOutline(d.c) end,
+    })
+
+    bindsPopup:Slider({
+        Name = 'transparency',
+        Value = math.floor(Binds.Colors.TextOutlineTransparency * 100),
+        Min = 0,
+        Max = 100,
+        Float = 1,
+        Suffix = '%s%%',
+        Thickness = 12,
+        Flag = 'binds_text_outline_trans',
+        Callback = function(v) Binds:SetTextOutlineTransparency(v / 100) end,
+    })
+
+    ts:Divider({ Text = "background" })
+
+    local darkBgToggle = ts:Toggle({
+        Name = 'dark background',
+        Value = false,
+        Flag = 'dark_bg_enabled',
+        Callback = function(v)
+            Library.SetDarkBackground(v)
+        end,
+    })
+
+    local darkBgPopup = darkBgToggle:Popup({ Size = 240 })
+
+    darkBgPopup:Slider({
+        Name = 'transparency',
+        Value = math.floor((Library.Background.DarkTransparency or 0.5) * 100),
+        Min = 0,
+        Max = 100,
+        Float = 1,
+        Suffix = '%s%%',
+        Thickness = 12,
+        Flag = 'dark_bg_transparency',
+        Callback = function(v) Library.SetDarkTransparency(v / 100) end,
+    })
+
+    local blurBgToggle = ts:Toggle({
+        Name = 'blur background',
+        Value = false,
+        Flag = 'blur_bg_enabled',
+        Callback = function(v)
+            Library.SetBlurBackground(v)
+        end,
+    })
+
+    local blurBgPopup = blurBgToggle:Popup({ Size = 240 })
+
+    blurBgPopup:Slider({
+        Name = 'blur size',
+        Value = Library.Background.BlurSize or 12,
+        Min = 0,
+        Max = 56,
+        Float = 1,
+        Suffix = '%s',
+        Thickness = 12,
+        Flag = 'blur_bg_size',
+        Callback = function(v) Library.SetBlurSize(v) end,
     })
 
     ts:Divider({ Text = "theme colors" })
@@ -571,10 +695,11 @@ do
     end
 end
 
+
 CombatTab.Set(true)
 
 Library.Notification({
-    name = 'brrr.lol has been loaded',
+    name = 'richard has been loaded',
     type = 'Time',
     time = 5,
 })
