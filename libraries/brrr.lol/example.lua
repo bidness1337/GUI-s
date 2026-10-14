@@ -29,6 +29,39 @@ Library.Theme.Outline               = Color3.fromHex('1a1a1a')
 Library.Theme['Title Color']        = Color3.fromHex('ddfbff')
 Library.Theme.Risk                  = Color3.fromHex('ff4d4d')
 
+-- Binds overlay theme entries (hidden from the "theme colors" loop, shown only in the binds popup)
+Library.Theme['Binds Header Background']     = Color3.fromHex('000000')
+Library.Theme['Binds Header Title']          = Color3.fromHex('ffffff')
+Library.Theme['Binds Header Icon']           = Color3.fromHex('0200ff')
+
+Library.Theme['Binds Row Background']        = Color3.fromHex('ffffff')
+Library.Theme['Binds Row Name']              = Color3.fromHex('ffffff')
+Library.Theme['Binds Row Key']               = Color3.fromHex('ffffff')
+Library.Theme['Binds Row Mode']              = Color3.fromHex('ffffff')
+
+Library.Theme['Binds Row Active Background'] = Color3.fromHex('ffffff')
+Library.Theme['Binds Row Active Name']       = Color3.fromHex('ffffff')
+Library.Theme['Binds Row Active Key']        = Color3.fromHex('ffffff')
+Library.Theme['Binds Row Active Mode']       = Color3.fromHex('ffffff')
+
+Library.Theme['Binds Text Outline']          = Color3.fromHex('000000')
+
+-- Hide these from the auto-generated theme colorpicker list
+Library.HiddenThemeKeys = {
+    ['Binds Header Background']     = true,
+    ['Binds Header Title']          = true,
+    ['Binds Header Icon']           = true,
+    ['Binds Row Background']        = true,
+    ['Binds Row Name']              = true,
+    ['Binds Row Key']               = true,
+    ['Binds Row Mode']              = true,
+    ['Binds Row Active Background'] = true,
+    ['Binds Row Active Name']       = true,
+    ['Binds Row Active Key']        = true,
+    ['Binds Row Active Mode']       = true,
+    ['Binds Text Outline']          = true,
+}
+
 Library.Gradients.Title       = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0 }
 Library.Gradients.Scroll      = { Start = Color3.fromHex('030303'), End = Color3.fromHex('030303'), Enabled = true, Transparency = 0.6 }
 Library.Gradients.Dropdown    = { Start = Color3.fromHex('ddfbff'), End = Color3.fromHex('7a9ba3'), Enabled = true, Transparency = 0.75 }
@@ -412,65 +445,60 @@ do
         end,
     })
 
+    -- All binds colors AND transparencies live here
     local bindsPopup = bindsToggle:Popup({ Size = 240 })
 
     bindsPopup:Divider({ Text = "Header" })
 
     bindsPopup:Colorpicker({
         Name = 'background',
-        Value = Binds.Colors.HeaderBackground,
+        Value = Library.Theme['Binds Header Background'],
         Alpha = 0,
-        Flag = 'binds_header_bg',
-        Callback = function(d) Binds:SetHeaderBackground(d.c) end,
+        Flag = 'theme_binds_header_background',
+        Callback = function(d) Library.UpdateTheme('Binds Header Background', d.c) end,
     })
-
     bindsPopup:Slider({
-        Name = 'transparency',
-        Value = math.floor(Binds.Colors.HeaderTransparency * 100),
-        Min = 0,
-        Max = 100,
-        Float = 1,
-        Suffix = '%s%%',
-        Thickness = 12,
-        Flag = 'binds_header_trans',
-        Callback = function(v) Binds:SetHeaderTransparency(v / 100) end,
+        Name = 'background transparency',
+        Value = math.floor((Binds.Colors.HeaderTransparency or 0) * 100),
+        Min = 0, Max = 100, Float = 1, Suffix = '%s%%', Thickness = 10,
+        Flag = 'binds_header_bg_trans',
+        Callback = function(v)
+            Binds.Colors.HeaderTransparency = v / 100
+            Binds.Objects.HeaderContainer.BackgroundTransparency = v / 100
+        end,
     })
 
     bindsPopup:Colorpicker({
         Name = 'title color',
-        Value = Binds.Colors.Title,
+        Value = Library.Theme['Binds Header Title'],
         Alpha = 0,
-        Flag = 'binds_title',
-        Callback = function(d) Binds:SetTitle(d.c) end,
+        Flag = 'theme_binds_header_title',
+        Callback = function(d) Library.UpdateTheme('Binds Header Title', d.c) end,
     })
 
     bindsPopup:Colorpicker({
         Name = 'icon color',
-        Value = Binds.Colors.Icon,
+        Value = Library.Theme['Binds Header Icon'],
         Alpha = 0,
-        Flag = 'binds_icon',
-        Callback = function(d) Binds:SetIcon(d.c) end,
+        Flag = 'theme_binds_header_icon',
+        Callback = function(d) Library.UpdateTheme('Binds Header Icon', d.c) end,
     })
+
 
     bindsPopup:Divider({ Text = "Row - Inactive" })
 
     bindsPopup:Colorpicker({
         Name = 'background',
-        Value = Binds.Colors.RowBackground,
+        Value = Library.Theme['Binds Row Background'],
         Alpha = 0,
-        Flag = 'binds_row_bg',
-        Callback = function(d) Binds:SetRowBackground(d.c) end,
+        Flag = 'theme_binds_row_background',
+        Callback = function(d) Library.UpdateTheme('Binds Row Background', d.c) end,
     })
-
     bindsPopup:Slider({
-        Name = 'transparency',
-        Value = math.floor(Binds.Colors.RowTransparency * 100),
-        Min = 0,
-        Max = 100,
-        Float = 1,
-        Suffix = '%s%%',
-        Thickness = 12,
-        Flag = 'binds_row_trans',
+        Name = 'background transparency',
+        Value = math.floor((Binds.Colors.RowTransparency or 0) * 100),
+        Min = 0, Max = 100, Float = 1, Suffix = '%s%%', Thickness = 10,
+        Flag = 'binds_row_bg_trans',
         Callback = function(v)
             Binds.Colors.RowTransparency = v / 100
             for _, entry in pairs(Binds.Rows) do
@@ -483,47 +511,42 @@ do
 
     bindsPopup:Colorpicker({
         Name = 'name color',
-        Value = Binds.Colors.RowName,
+        Value = Library.Theme['Binds Row Name'],
         Alpha = 0,
-        Flag = 'binds_row_name',
-        Callback = function(d) Binds:SetRowName(d.c) end,
+        Flag = 'theme_binds_row_name',
+        Callback = function(d) Library.UpdateTheme('Binds Row Name', d.c) end,
     })
 
     bindsPopup:Colorpicker({
         Name = 'mode color',
-        Value = Binds.Colors.RowMode,
+        Value = Library.Theme['Binds Row Mode'],
         Alpha = 0,
-        Flag = 'binds_row_mode',
-        Callback = function(d) Binds:SetRowMode(d.c) end,
+        Flag = 'theme_binds_row_mode',
+        Callback = function(d) Library.UpdateTheme('Binds Row Mode', d.c) end,
     })
 
     bindsPopup:Colorpicker({
         Name = 'key color',
-        Value = Binds.Colors.RowKey,
+        Value = Library.Theme['Binds Row Key'],
         Alpha = 0,
-        Flag = 'binds_row_key',
-        Callback = function(d) Binds:SetRowKey(d.c) end,
+        Flag = 'theme_binds_row_key',
+        Callback = function(d) Library.UpdateTheme('Binds Row Key', d.c) end,
     })
 
     bindsPopup:Divider({ Text = "Row - Active" })
 
     bindsPopup:Colorpicker({
         Name = 'background',
-        Value = Binds.Colors.RowActiveBackground,
+        Value = Library.Theme['Binds Row Active Background'],
         Alpha = 0,
-        Flag = 'binds_row_active_bg',
-        Callback = function(d) Binds:SetRowActiveBackground(d.c) end,
+        Flag = 'theme_binds_row_active_background',
+        Callback = function(d) Library.UpdateTheme('Binds Row Active Background', d.c) end,
     })
-
     bindsPopup:Slider({
-        Name = 'transparency',
-        Value = math.floor(Binds.Colors.RowActiveTransparency * 100),
-        Min = 0,
-        Max = 100,
-        Float = 1,
-        Suffix = '%s%%',
-        Thickness = 12,
-        Flag = 'binds_row_active_trans',
+        Name = 'background transparency',
+        Value = math.floor((Binds.Colors.RowActiveTransparency or 0) * 100),
+        Min = 0, Max = 100, Float = 1, Suffix = '%s%%', Thickness = 10,
+        Flag = 'binds_row_active_bg_trans',
         Callback = function(v)
             Binds.Colors.RowActiveTransparency = v / 100
             for _, entry in pairs(Binds.Rows) do
@@ -536,46 +559,41 @@ do
 
     bindsPopup:Colorpicker({
         Name = 'name color',
-        Value = Binds.Colors.RowActiveName,
+        Value = Library.Theme['Binds Row Active Name'],
         Alpha = 0,
-        Flag = 'binds_row_active_name',
-        Callback = function(d) Binds:SetRowActiveName(d.c) end,
+        Flag = 'theme_binds_row_active_name',
+        Callback = function(d) Library.UpdateTheme('Binds Row Active Name', d.c) end,
     })
 
     bindsPopup:Colorpicker({
         Name = 'mode color',
-        Value = Binds.Colors.RowActiveMode,
+        Value = Library.Theme['Binds Row Active Mode'],
         Alpha = 0,
-        Flag = 'binds_row_active_mode',
-        Callback = function(d) Binds:SetRowActiveMode(d.c) end,
+        Flag = 'theme_binds_row_active_mode',
+        Callback = function(d) Library.UpdateTheme('Binds Row Active Mode', d.c) end,
     })
 
     bindsPopup:Colorpicker({
         Name = 'key color',
-        Value = Binds.Colors.RowActiveKey,
+        Value = Library.Theme['Binds Row Active Key'],
         Alpha = 0,
-        Flag = 'binds_row_active_key',
-        Callback = function(d) Binds:SetRowActiveKey(d.c) end,
+        Flag = 'theme_binds_row_active_key',
+        Callback = function(d) Library.UpdateTheme('Binds Row Active Key', d.c) end,
     })
 
     bindsPopup:Divider({ Text = "Text Outline" })
 
     bindsPopup:Colorpicker({
         Name = 'outline color',
-        Value = Binds.Colors.TextOutline,
+        Value = Library.Theme['Binds Text Outline'],
         Alpha = 0,
-        Flag = 'binds_text_outline',
-        Callback = function(d) Binds:SetTextOutline(d.c) end,
+        Flag = 'theme_binds_text_outline',
+        Callback = function(d) Library.UpdateTheme('Binds Text Outline', d.c) end,
     })
-
     bindsPopup:Slider({
-        Name = 'transparency',
-        Value = math.floor(Binds.Colors.TextOutlineTransparency * 100),
-        Min = 0,
-        Max = 100,
-        Float = 1,
-        Suffix = '%s%%',
-        Thickness = 12,
+        Name = 'outline transparency',
+        Value = math.floor((Binds.Colors.TextOutlineTransparency or 0) * 100),
+        Min = 0, Max = 100, Float = 1, Suffix = '%s%%', Thickness = 10,
         Flag = 'binds_text_outline_trans',
         Callback = function(v) Binds:SetTextOutlineTransparency(v / 100) end,
     })
@@ -630,15 +648,17 @@ do
 
     ts:Divider({ Text = "theme colors" })
     for theme, color in pairs(Library.Theme) do
-        ts:Colorpicker({
-            Name = theme:lower(),
-            Value = color,
-            Alpha = 0,
-            Callback = function(d)
-                Library.UpdateTheme(theme, d.c)
-            end,
-            Flag = 'theme_' .. theme:lower():gsub(' ', '_'),
-        })
+        if not Library.HiddenThemeKeys[theme] then
+            ts:Colorpicker({
+                Name = theme:lower(),
+                Value = color,
+                Alpha = 0,
+                Callback = function(d)
+                    Library.UpdateTheme(theme, d.c)
+                end,
+                Flag = 'theme_' .. theme:lower():gsub(' ', '_'),
+            })
+        end
     end
 
     ts:Divider({ Text = "gradients" })
