@@ -1,5 +1,5 @@
 local LoadingTick = os.clock()
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/thugsense/change-log/update%200.2.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bidness1337/GUI-s/refs/heads/main/libraries/thugsense/change-log/wahwahwah.lua"))()
 
 local Window = Library:Window({
     Name = "wahwahwah",
